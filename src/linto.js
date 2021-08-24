@@ -127,6 +127,8 @@ export default class Linto extends EventTarget {
                 this.mqtt.addEventListener("streaming_stop_ack", handlers.streamingStopAck.bind(this))
                 this.mqtt.addEventListener("streaming_final", handlers.streamingFinal.bind(this))
                 this.mqtt.addEventListener("streaming_fail", handlers.streamingFail.bind(this))
+                this.mqtt.addEventListener("chatbot_feedback", handlers.chatbotAnswer.bind(this))
+                this.mqtt.addEventListener("action_feedback", handlers.actionAnswer.bind(this))
                 this.mqtt.addEventListener("mqtt_connect", handlers.mqttConnect.bind(this))
                 this.mqtt.addEventListener("mqtt_connect_fail", handlers.mqttConnectFail.bind(this))
                 this.mqtt.addEventListener("mqtt_error", handlers.mqttError.bind(this))
@@ -185,6 +187,56 @@ export default class Linto extends EventTarget {
             }, this.commandTimeout)
         } catch (e) {
             this.dispatchEvent(new CustomEvent("command_error", {
+                detail: e
+            }))
+        }
+    }
+
+
+    async sendText(text){
+        this.sendLintoText(text, {status : 'text'})
+    }
+
+    async sendChatbot(text){
+        this.sendLintoText(text, {status : 'chatbot'})
+    }
+
+    // detail : contains event information
+    async sendLintoText(text, detail) {
+        try {
+            this.dispatchEvent(new CustomEvent(`${detail.status}_acquired`))
+            const id = await this.mqtt.publishText(text, detail)
+            this.dispatchEvent(new CustomEvent(`${detail.status}_published`, {
+                detail: id
+            }))
+            setTimeout(() => {
+                // Check if id is still in the array of "to be processed commands"
+                // Mqtt handles itself the removal of received transcriptions
+                if (this.mqtt && this.mqtt.pendingCommandIds.includes(id)) {
+                    this.dispatchEvent(new CustomEvent("command_timeout", {
+                        detail: id
+                    }))
+
+                }
+            }, this.commandTimeout)
+        } catch (e) {
+            console.log(e)
+            this.dispatchEvent(new CustomEvent("command_error", {
+                detail: e
+            }))
+        }
+    }
+
+    async triggerAction(payload, skillName, eventName){
+        try{
+            this.dispatchEvent(new CustomEvent("action_acquired"))
+            const id = await this.mqtt.publishAction(payload, skillName, eventName)
+            this.dispatchEvent(new CustomEvent("action_published", {
+                detail: id
+            }))
+        }catch(e){
+            console.log(e)
+            this.dispatchEvent(new CustomEvent("action_error", {
                 detail: e
             }))
         }

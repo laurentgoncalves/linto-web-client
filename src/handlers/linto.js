@@ -40,6 +40,33 @@ export async function nlpAnswer(event) {
     }
 }
 
+export async function chatbotAnswer(event){
+    if (event.detail.behavior.chatbot) {
+        this.dispatchEvent(new CustomEvent("chatbot_feedback", {
+            detail: event.detail
+        }))
+        return
+    }else {
+        this.dispatchEvent(new CustomEvent("chatbot_error", {
+            detail: event.detail
+        }))
+        return
+    }
+}
+
+export async function actionAnswer(event){
+    if (event.detail.behavior) {
+        this.dispatchEvent(new CustomEvent("action_feedback", {
+            detail: event.detail
+        }))
+        return
+    }else {
+        this.dispatchEvent(new CustomEvent("action_error", {
+            detail: event.detail
+        }))
+        return
+    }
+}
 
 
 // Might be an error

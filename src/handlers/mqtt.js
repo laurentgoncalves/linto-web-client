@@ -39,12 +39,26 @@ export function mqttMessage(topic, payload) {
                 if (message.payload.behavior.say) this.conversationData = {}
                 // otherwise sets local conversation data to the received value
                 else if (message.payload.behavior.ask) this.conversationData = message.payload.behavior.conversationData
-                // customAction
+
                 this.dispatchEvent(new CustomEvent(command, {
                     detail: message.payload
                 }))
                 break
-                // Received on connection tolinto/${sessionId}/tts_lang/
+            case "chatbot":
+                this.pendingCommandIds = this.pendingCommandIds.filter(element => element !== topicArray[4]) //removes from array of files to process
+                message.payload = JSON.parse(payload.toString()) // Received a stop streaming ack
+                this.dispatchEvent(new CustomEvent("chatbot_feedback", {
+                    detail: message.payload
+                }))
+
+                break
+            case "customAction":
+                message.payload = JSON.parse(payload.toString()) // Received a stop streaming ack
+                this.dispatchEvent(new CustomEvent("action_feedback", {
+                    detail: message.payload
+                }))
+                break
+            // Received on connection tolinto/${sessionId}/tts_lang/
             case "tts_lang":
                 this.dispatchEvent(new CustomEvent(command, {
                     detail: message.payload

@@ -69,6 +69,48 @@ export default class MqttClient extends EventTarget {
         })
     }
 
+    // app1cf2ee0f5a4ce4bcd668e734f2604018/fromlinto/DEV_5f3d383540cd1902084c6275/skills/transcribe/transcriber
+    async publishAction(payload, skillName, eventName){
+        return new Promise((resolve, reject) => {
+            const pubOptions = {
+                "qos": 0,
+                "retain": false
+            }
+            const transactionId = Math.random().toString(36).substring(4)
+            const pubTopic = `${this.egress}/skills/${skillName}/${eventName}`
+
+            this.client.publish(pubTopic, JSON.stringify(payload), pubOptions, (err) => {
+                if (err) return reject(err)
+                this.pendingCommandIds.push(transactionId)
+                return resolve(transactionId)
+            })
+        })
+    }
+
+    async publishText(text, detail) {
+        return new Promise((resolve, reject) => {
+            const pubOptions = {
+                "qos": 0,
+                "retain": false
+            }
+            const transactionId = Math.random().toString(36).substring(4)
+
+            let pubTopic
+            if(detail.status === 'chatbot') pubTopic = `${this.egress}/chatbot/${transactionId}`
+            else pubTopic = `${this.egress}/nlp/text/${transactionId}`
+
+            const payload = {
+                "text": text,
+                "conversationData": this.conversationData
+            }
+            this.client.publish(pubTopic, JSON.stringify(payload), pubOptions, (err) => {
+                if (err) return reject(err)
+                this.pendingCommandIds.push(transactionId)
+                return resolve(transactionId)
+            })
+        })
+    }
+
     async publishAudioCommand(b64Audio) {
         return new Promise((resolve, reject) => {
             const pubOptions = {
