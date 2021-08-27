@@ -14,6 +14,7 @@ export default class Linto extends EventTarget {
         // Status
         this.commandPipeline = false
         this.streaming = false
+        this.hotword = false
         // Server connexion
         this.httpAuthServer = httpAuthServer
         this.requestToken = requestToken
@@ -77,6 +78,21 @@ export default class Linto extends EventTarget {
             this.commandPipeline = false
             this.audio.hotword.removeEventListener("hotword", this.hotwordHandler)
             this.mqtt.removeEventListener("nlp", this.nlpAnswerHandler)
+        }
+    }
+
+    startHotword() {
+        if (!this.hotword && this.audio) {
+            this.hotword = true
+            this.hotwordHandler = handlers.hotword.bind(this)
+            this.audio.hotword.addEventListener("hotword", this.hotwordHandler)
+        }
+    }
+
+    stopHotword() {
+        if (this.hotword && this.audio) {
+            this.hotword = false
+            this.audio.hotword.removeEventListener("hotword", this.hotwordHandler)
         }
     }
 
@@ -167,7 +183,7 @@ export default class Linto extends EventTarget {
         this.triggerHotword()
     }
 
-    async sendCommand() {
+    async sendCommandBuffer() {
         try {
             const b64Audio = await this.audio.getCommand()
             this.dispatchEvent(new CustomEvent("command_acquired"))
@@ -193,11 +209,11 @@ export default class Linto extends EventTarget {
     }
 
 
-    async sendText(text){
+    async sendCommandText(text){
         this.sendLintoText(text, {status : 'text'})
     }
 
-    async sendChatbot(text){
+    async sendChatbotText(text){
         this.sendLintoText(text, {status : 'chatbot'})
     }
 

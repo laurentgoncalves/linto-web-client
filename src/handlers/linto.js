@@ -9,7 +9,7 @@ export function vadStatus(event) {
 export function hotword(hotWordEvent) {
     this.dispatchEvent(new CustomEvent("hotword_on", hotWordEvent))
     const whenSpeakingOff = async () => {
-        await this.sendCommand()
+        await this.sendCommandBuffer()
         this.removeEventListener("speaking_off", whenSpeakingOff)
         this.audio.hotword.resume()
     }
@@ -68,7 +68,6 @@ export async function actionAnswer(event){
     }
 }
 
-
 // Might be an error
 export function streamingStartAck(event) {
     this.streamingPublishHandler = streamingPublish.bind(this)
@@ -88,23 +87,36 @@ export function streamingStartAck(event) {
     }
 }
 
+export function streamingStopAck(event){
+    if(event.detail.behavior.streaming.status === "stop"){
+        this.dispatchEvent(new CustomEvent("streaming_stop", {
+            detail: event.detail
+        }))
+    } else if (event.detail.behavior.streaming.status === "error") {
+        this.dispatchEvent(new CustomEvent("streaming_fail", {
+            detail: event.detail
+        }))
+    }
+}
+
+export function streamingChunk(event){
+    if (event.detail.behavior.streaming.status == "error"){
+        this.dispatchEvent(new CustomEvent("streaming_fail", {
+            detail: event.detail
+        }))
+    } else {
+        this.dispatchEvent(new CustomEvent("streaming_chunk", {
+            detail: event.detail
+        }))
+    }
+}
+
 export function streamingFinal(event){
     this.dispatchEvent(new CustomEvent("streaming_final", {
         detail: event.detail
     }))
 }
 
-export function streamingChunk(event){
-    this.dispatchEvent(new CustomEvent("streaming_chunk", {
-        detail: event.detail
-    }))
-}
-
-export function streamingStopAck(event){
-    this.dispatchEvent(new CustomEvent("streaming_stop", {
-        detail: event.detail
-    }))
-}
 
 export function streamingFail(event){
     this.dispatchEvent(new CustomEvent("streaming_fail", {

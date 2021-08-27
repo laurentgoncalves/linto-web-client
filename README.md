@@ -62,6 +62,10 @@ This command might throw an error if something bad occurs
 - stopStreaming()
 - login() // Main startup command to initiate connexion towards your LinTO server
 - loggout()
+- startHotword()
+- stopHotword()
+- sendCommandText("blahblah") // Using the chatbot pipeline 
+- sendChatbotText("blahblah") // Publish the text to linto (bypass transcribe) 
 - say("blahblah") // Use browser text to speech
 - ask("blahblah ?") // Uses browser text to speech and immediatly triggers hotword when audiosynthesis is complete
 ```
@@ -89,9 +93,20 @@ Available events :
 - "say_feedback_from_skill"
 - "ask_feedback_from_skill"
 - "streaming_start"
+- "streaming_stop"
 - "streaming_chunk"
 - "streaming_final"
 - "streaming_fail"
+- "action_acquired"
+- "action_published"
+- "action_feedback"
+- "action_error"
+- "text_acquired"
+- "text_published"
+- "chatbot_acquired"
+- "chatbot_published"
+- "chatbot_feedback"
+- "chatbot_error"
 - "custom_action_from_skill"
 
 __NOTE__ : See proposed implementation in ./tests/index.js
