@@ -76,10 +76,6 @@ export function streamingStartAck(event) {
         this.dispatchEvent(new CustomEvent("streaming_start", {
             detail: event.detail
         }))
-    } else if (event.detail.behavior.streaming.error) {
-        this.dispatchEvent(new CustomEvent("streaming_fail", {
-            detail: event.detail
-        }))
     } else {
         this.dispatchEvent(new CustomEvent("streaming_fail", {
             detail: event.detail
@@ -88,27 +84,15 @@ export function streamingStartAck(event) {
 }
 
 export function streamingStopAck(event){
-    if(event.detail.behavior.streaming.status === "stop"){
-        this.dispatchEvent(new CustomEvent("streaming_stop", {
-            detail: event.detail
-        }))
-    } else if (event.detail.behavior.streaming.status === "error") {
-        this.dispatchEvent(new CustomEvent("streaming_fail", {
-            detail: event.detail
-        }))
-    }
+    this.dispatchEvent(new CustomEvent("streaming_stop", {
+        detail: event.detail
+    }))
 }
 
 export function streamingChunk(event){
-    if (event.detail.behavior.streaming.status == "error"){
-        this.dispatchEvent(new CustomEvent("streaming_fail", {
-            detail: event.detail
-        }))
-    } else {
-        this.dispatchEvent(new CustomEvent("streaming_chunk", {
-            detail: event.detail
-        }))
-    }
+    this.dispatchEvent(new CustomEvent("streaming_chunk", {
+        detail: event.detail
+    }))
 }
 
 export function streamingFinal(event){

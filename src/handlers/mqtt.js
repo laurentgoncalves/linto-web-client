@@ -89,6 +89,13 @@ export function mqttMessage(topic, payload) {
                         detail: message.payload
                     }))
                 }
+                if (topicArray[4] == 'error') {
+                    message.payload = JSON.parse(payload.toString()) // Received a streaming chunk of data
+                    this.dispatchEvent(new CustomEvent("streaming_fail", {
+                        detail: message.payload
+                    }))
+                }
+
 
                 break
         }
