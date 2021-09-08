@@ -6,10 +6,23 @@ export function vadStatus(event) {
     event.detail ? (this.dispatchEvent(new CustomEvent("speaking_on"))) : (this.dispatchEvent(new CustomEvent("speaking_off")))
 }
 
-export function hotword(hotWordEvent) {
+export function hotwordCommandBuffer(hotWordEvent) {
     this.dispatchEvent(new CustomEvent("hotword_on", hotWordEvent))
     const whenSpeakingOff = async () => {
         await this.sendCommandBuffer()
+        this.removeEventListener("speaking_off", whenSpeakingOff)
+        this.audio.hotword.resume()
+    }
+    this.listenCommand()
+    this.audio.hotword.pause()
+    this.addEventListener("speaking_off", whenSpeakingOff)
+}
+
+export function hotwordStreaming(hotWordEvent) {
+    this.dispatchEvent(new CustomEvent("hotword_on", hotWordEvent))
+    this.startStreaming()
+    const whenSpeakingOff = async () => {
+        this.stopStreaming()
         this.removeEventListener("speaking_off", whenSpeakingOff)
         this.audio.hotword.resume()
     }

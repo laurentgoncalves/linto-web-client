@@ -54,6 +54,8 @@ This command might throw an error if something bad occurs
 - startAudioAcquisition(true, "linto", 0.99) // Uses hotword built in WebVoiceSDK by name / model / threshold
 - startCommandPipeline() // Start to listen to hotwords and binds a publisher for acquired audio when speaking stop
 - stopCommandPipeline()
+- startStreamingPipeline() // Start to listen to hotwords and binds streaming start/stop event when audio acquired
+- stopStreamingPipeline() 
 - triggerHotword(dummyHotwordName = "dummy") // Manualy activate a hotword detection, use it when commandPipeline is active.
 - pauseAudioAcquisition()
 - resumeAudioAcquisition()
@@ -64,8 +66,9 @@ This command might throw an error if something bad occurs
 - loggout()
 - startHotword()
 - stopHotword()
-- sendCommandText("blahblah") // Using the chatbot pipeline 
-- sendChatbotText("blahblah") // Publish the text to linto (bypass transcribe) 
+- sendCommandText("blahblah") // Use chatbot pipeline 
+- sendChatbotText("blahblah") // Publish text to linto (bypass transcribe) 
+- triggerAction(payload, skillName, eventName) // Publish payload to the specific skill/event
 - say("blahblah") // Use browser text to speech
 - ask("blahblah ?") // Uses browser text to speech and immediatly triggers hotword when audiosynthesis is complete
 ```

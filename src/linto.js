@@ -63,28 +63,42 @@ export default class Linto extends EventTarget {
         delete this.audio
     }
 
+    startStreamingPipeline(){
+        if (!this.streamingPipeline && !this.hotword && this.audio) {
+            this.streamingPipeline = true
+            this.startHotword(false)
+        }
+    }
+
+    stopStreamingPipeline(){
+        if (this.streamingPipeline && this.hotword && this.audio) {
+            this.streamingPipeline = false
+            this.stopHotword()
+        }
+    }
+
     startCommandPipeline() {
-        if (!this.commandPipeline && this.audio) {
+        if (!this.commandPipeline && this.audio && !this.hotword) {
             this.commandPipeline = true
-            this.hotwordHandler = handlers.hotword.bind(this)
-            this.audio.hotword.addEventListener("hotword", this.hotwordHandler)
+            this.startHotword(true)
             this.nlpAnswerHandler = handlers.nlpAnswer.bind(this)
             this.mqtt.addEventListener("nlp", this.nlpAnswerHandler)
         }
     }
 
     stopCommandPipeline() {
-        if (this.commandPipeline && this.audio) {
+        if (this.commandPipeline && this.hotword && this.audio) {
             this.commandPipeline = false
-            this.audio.hotword.removeEventListener("hotword", this.hotwordHandler)
+            this.stopHotword()
             this.mqtt.removeEventListener("nlp", this.nlpAnswerHandler)
         }
     }
 
-    startHotword() {
+    startHotword(enableCommandPipeline = true) {
         if (!this.hotword && this.audio) {
             this.hotword = true
-            this.hotwordHandler = handlers.hotword.bind(this)
+            if(enableCommandPipeline) this.hotwordHandler = handlers.hotwordCommandBuffer.bind(this)
+            else this.hotwordHandler = handlers.hotwordStreaming.bind(this)
             this.audio.hotword.addEventListener("hotword", this.hotwordHandler)
         }
     }

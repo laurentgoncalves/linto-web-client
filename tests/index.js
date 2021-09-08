@@ -111,7 +111,7 @@ let streamingFinal = function (event) {
 }
 
 let streamingFail = function (event) {
-    console.log("Streaming cannot start : ",event.detail)
+    console.log("Streaming error : ",event.detail)
 }
 
 let customHandler = function (event) {
