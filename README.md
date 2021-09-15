@@ -61,6 +61,8 @@ This command might throw an error if something bad occurs
 - resumeAudioAcquisition()
 - stopAudioAcquisition()
 - startStreaming(metadata = 1) // Tries to initiate a streaming transcription session with your LinTO server. The LinTO server needs a streaming skill and a streaming STT service
+- addEventNlp() // Bind the event nlp to handle answer
+- removeEventNlp()
 - stopStreaming()
 - login() // Main startup command to initiate connexion towards your LinTO server
 - loggout()
@@ -68,7 +70,7 @@ This command might throw an error if something bad occurs
 - stopHotword()
 - sendCommandText("blahblah") // Use chatbot pipeline 
 - sendChatbotText("blahblah") // Publish text to linto (bypass transcribe) 
-- triggerAction(payload, skillName, eventName) // Publish payload to the specific skill/event
+- triggerAction(payload, skillName, eventName) // Publish payload to the desired skill/event
 - say("blahblah") // Use browser text to speech
 - ask("blahblah ?") // Uses browser text to speech and immediatly triggers hotword when audiosynthesis is complete
 ```

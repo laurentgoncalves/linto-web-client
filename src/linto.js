@@ -13,8 +13,12 @@ export default class Linto extends EventTarget {
         this.lang = "en-US" // default
         // Status
         this.commandPipeline = false
+        this.streamingPipeline = false
         this.streaming = false
         this.hotword = false
+        this.event = {
+            nlp : false
+        }
         // Server connexion
         this.httpAuthServer = httpAuthServer
         this.requestToken = requestToken
@@ -67,6 +71,7 @@ export default class Linto extends EventTarget {
         if (!this.streamingPipeline && !this.hotword && this.audio) {
             this.streamingPipeline = true
             this.startHotword(false)
+            this.addEventNlp()
         }
     }
 
@@ -74,6 +79,7 @@ export default class Linto extends EventTarget {
         if (this.streamingPipeline && this.hotword && this.audio) {
             this.streamingPipeline = false
             this.stopHotword()
+            this.removeEventNlp()
         }
     }
 
@@ -81,8 +87,7 @@ export default class Linto extends EventTarget {
         if (!this.commandPipeline && this.audio && !this.hotword) {
             this.commandPipeline = true
             this.startHotword(true)
-            this.nlpAnswerHandler = handlers.nlpAnswer.bind(this)
-            this.mqtt.addEventListener("nlp", this.nlpAnswerHandler)
+            this.addEventNlp()
         }
     }
 
@@ -90,7 +95,7 @@ export default class Linto extends EventTarget {
         if (this.commandPipeline && this.hotword && this.audio) {
             this.commandPipeline = false
             this.stopHotword()
-            this.mqtt.removeEventListener("nlp", this.nlpAnswerHandler)
+            this.removeEventNlp()
         }
     }
 
@@ -124,6 +129,21 @@ export default class Linto extends EventTarget {
             // We immediatly stop streaming audio without waiting stop streaming acknowledgment
             this.audio.downSampler.removeEventListener("downSamplerFrame", this.streamingPublishHandler)
             this.mqtt.stopStreaming()
+        }
+    }
+
+    addEventNlp(){
+        if(!this.event.nlp){
+            this.nlpAnswerHandler = handlers.nlpAnswer.bind(this)
+            this.mqtt.addEventListener("nlp", this.nlpAnswerHandler)
+            this.event.nlp = true
+        }
+    }
+
+    removeEventNlp(){
+        if(this.event.nlp){
+            this.event.nlp = false
+            this.mqtt.removeEventListener("nlp", this.nlpAnswerHandler)
         }
     }
 

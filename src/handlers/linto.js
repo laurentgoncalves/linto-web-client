@@ -32,6 +32,13 @@ export function hotwordStreaming(hotWordEvent) {
 }
 
 export async function nlpAnswer(event) {
+    if (event.detail.behavior.chatbot) {
+        this.dispatchEvent(new CustomEvent("chatbot_feedback_from_skill", {
+            detail: event.detail
+        }))
+        return // Might handle custom_action say or ask, so we just exit here.
+    }
+
     if (event.detail.behavior.customAction) {
         this.dispatchEvent(new CustomEvent("custom_action_from_skill", {
             detail: event.detail
@@ -51,6 +58,7 @@ export async function nlpAnswer(event) {
             detail: event.detail
         }))
     }
+
 }
 
 export async function chatbotAnswer(event){
