@@ -193,6 +193,7 @@ export default class Linto extends EventTarget {
 
     async logout(){
         this.stopCommandPipeline()
+        this.stopStreamingPipeline()
         this.stopStreaming()
         this.mqtt.disconnect()
         delete this.mqtt
@@ -215,6 +216,10 @@ export default class Linto extends EventTarget {
     async ask(lang, text) {
         await this.say(lang, text)
         this.triggerHotword()
+    }
+
+    stopSpeech(){
+        speechSynthesis.cancel()
     }
 
     async sendCommandBuffer() {
