@@ -63,6 +63,9 @@
 
 
 ## Error Format
+### **Answer**
+- **topic** : `clientCode/toLinto/SN/streaming/error`
+- **payload** : 
 
 ```json
 {"behavior":{

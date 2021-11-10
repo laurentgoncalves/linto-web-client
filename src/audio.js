@@ -35,6 +35,7 @@ export default class Audio extends EventTarget {
 
     async start() {
         try {
+            await this.mic.start()
             await this.downSampler.start(this.mic)
             await this.vad.start(this.mic)
             await this.speechPreemphaser.start(this.downSampler)
@@ -43,7 +44,6 @@ export default class Audio extends EventTarget {
                 await this.hotword.start(this.featuresExtractor, this.vad, this.threshold)
                 await this.hotword.loadModel(this.hotword.availableModels[this.hotwordModel])
             }
-            await this.mic.start()
             await this.recorder.start(this.downSampler)
         } catch (e) {
             console.log(e)

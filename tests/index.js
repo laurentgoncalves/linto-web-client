@@ -1,4 +1,5 @@
-import Linto from '../dist/linto.min.js'
+// import Linto from '../dist/linto.min.js'
+import Linto from '../src/linto.js'
 
 let mqttConnectHandler = function (event) {
     console.log("mqtt up !")
@@ -33,6 +34,46 @@ let commandPublished = function (event) {
     console.log("Command published id :", event.detail)
 }
 
+let actionAcquired = function (event) {
+    console.log("action acquired")
+}
+
+let actionPublished = function (event) {
+    console.log("action published id :", event.detail)
+}
+
+let actionFeedback = function (event) {
+    console.log("action feedback :", event)
+}
+
+let actionError = function (event) {
+    console.log("action error :", event)
+}
+
+let textAcquired = function (event) {
+    console.log("text acquired")
+}
+
+let textPublished = function (event) {
+    console.log("text published id :", event.detail)
+}
+
+let chatbotAcquired = function (event) {
+    console.log("chatbot text acquired")
+}
+
+let chatbotPublished = function (event) {
+    console.log("chatbot text published id :", event.detail)
+}
+
+let chatbotFeedback = function (event) {
+    console.log("chatbot feedback :", event)
+}
+
+let chatbotError = function (event) {
+    console.log("chatbot error :", event)
+}
+
 let hotword = function (event) {
     console.log("Hotword triggered : ", event.detail)
 }
@@ -62,12 +103,16 @@ let streamingStart = function (event) {
     console.log("Streaming started with no errors")
 }
 
+let streamingStop = function (event) {
+    console.log("Streaming stoped with no errors")
+}
+
 let streamingFinal = function (event) {
     console.log("Streaming ended, here's the final transcript : ",event.detail.behavior.streaming.result)
 }
 
 let streamingFail = function (event) {
-    console.log("Streaming cannot start : ",event.detail)
+    console.log("Streaming error : ",event.detail)
 }
 
 let customHandler = function (event) {
@@ -94,11 +139,21 @@ window.start = async function () {
         linto.addEventListener("hotword_on", hotword)
         linto.addEventListener("say_feedback_from_skill", sayFeedback)
         linto.addEventListener("ask_feedback_from_skill", askFeedback)
+        linto.addEventListener("custom_action_from_skill", customHandler)
+        linto.addEventListener("chatbot_feedback_from_skill", chatbotFeedback)
+        linto.addEventListener("text_acquired", textAcquired)
+        linto.addEventListener("text_published", textPublished)
+        linto.addEventListener("chatbot_acquired", chatbotAcquired)
+        linto.addEventListener("chatbot_published", chatbotPublished)
+        linto.addEventListener("chatbot_feedback", chatbotFeedback)
+        linto.addEventListener("chatbot_error", chatbotError)
+        linto.addEventListener("action_feedback", actionFeedback)
+        linto.addEventListener("action_error", actionError)
         linto.addEventListener("streaming_start", streamingStart)
+        linto.addEventListener("streaming_stop", streamingStop)
         linto.addEventListener("streaming_chunk", streamingChunk)
         linto.addEventListener("streaming_final", streamingFinal)
         linto.addEventListener("streaming_fail", streamingFail)
-        linto.addEventListener("custom_action_from_skill", customHandler)
         await linto.login()
         linto.startAudioAcquisition(true, "linto", 0.99) // Uses hotword built in WebVoiceSDK by name / model / threshold (0.99 is fine enough)
         linto.startCommandPipeline()

@@ -13,7 +13,12 @@ export default class Linto extends EventTarget {
         this.lang = "en-US" // default
         // Status
         this.commandPipeline = false
+        this.streamingPipeline = false
         this.streaming = false
+        this.hotword = false
+        this.event = {
+            nlp : false
+        }
         // Server connexion
         this.httpAuthServer = httpAuthServer
         this.requestToken = requestToken
@@ -62,21 +67,51 @@ export default class Linto extends EventTarget {
         delete this.audio
     }
 
+    startStreamingPipeline(){
+        if (!this.streamingPipeline && !this.hotword && this.audio) {
+            this.streamingPipeline = true
+            this.startHotword(false)
+            this.addEventNlp()
+        }
+    }
+
+    stopStreamingPipeline(){
+        if (this.streamingPipeline && this.hotword && this.audio) {
+            this.streamingPipeline = false
+            this.stopHotword()
+            this.removeEventNlp()
+        }
+    }
+
     startCommandPipeline() {
-        if (!this.commandPipeline && this.audio) {
+        if (!this.commandPipeline && this.audio && !this.hotword) {
             this.commandPipeline = true
-            this.hotwordHandler = handlers.hotword.bind(this)
-            this.audio.hotword.addEventListener("hotword", this.hotwordHandler)
-            this.nlpAnswerHandler = handlers.nlpAnswer.bind(this)
-            this.mqtt.addEventListener("nlp", this.nlpAnswerHandler)
+            this.startHotword(true)
+            this.addEventNlp()
         }
     }
 
     stopCommandPipeline() {
-        if (this.commandPipeline && this.audio) {
+        if (this.commandPipeline && this.hotword && this.audio) {
             this.commandPipeline = false
+            this.stopHotword()
+            this.removeEventNlp()
+        }
+    }
+
+    startHotword(enableCommandPipeline = true) {
+        if (!this.hotword && this.audio) {
+            this.hotword = true
+            if(enableCommandPipeline) this.hotwordHandler = handlers.hotwordCommandBuffer.bind(this)
+            else this.hotwordHandler = handlers.hotwordStreaming.bind(this)
+            this.audio.hotword.addEventListener("hotword", this.hotwordHandler)
+        }
+    }
+
+    stopHotword() {
+        if (this.hotword && this.audio) {
+            this.hotword = false
             this.audio.hotword.removeEventListener("hotword", this.hotwordHandler)
-            this.mqtt.removeEventListener("nlp", this.nlpAnswerHandler)
         }
     }
 
@@ -94,6 +129,21 @@ export default class Linto extends EventTarget {
             // We immediatly stop streaming audio without waiting stop streaming acknowledgment
             this.audio.downSampler.removeEventListener("downSamplerFrame", this.streamingPublishHandler)
             this.mqtt.stopStreaming()
+        }
+    }
+
+    addEventNlp(){
+        if(!this.event.nlp){
+            this.nlpAnswerHandler = handlers.nlpAnswer.bind(this)
+            this.mqtt.addEventListener("nlp", this.nlpAnswerHandler)
+            this.event.nlp = true
+        }
+    }
+
+    removeEventNlp(){
+        if(this.event.nlp){
+            this.event.nlp = false
+            this.mqtt.removeEventListener("nlp", this.nlpAnswerHandler)
         }
     }
 
@@ -127,6 +177,8 @@ export default class Linto extends EventTarget {
                 this.mqtt.addEventListener("streaming_stop_ack", handlers.streamingStopAck.bind(this))
                 this.mqtt.addEventListener("streaming_final", handlers.streamingFinal.bind(this))
                 this.mqtt.addEventListener("streaming_fail", handlers.streamingFail.bind(this))
+                this.mqtt.addEventListener("chatbot_feedback", handlers.chatbotAnswer.bind(this))
+                this.mqtt.addEventListener("action_feedback", handlers.actionAnswer.bind(this))
                 this.mqtt.addEventListener("mqtt_connect", handlers.mqttConnect.bind(this))
                 this.mqtt.addEventListener("mqtt_connect_fail", handlers.mqttConnectFail.bind(this))
                 this.mqtt.addEventListener("mqtt_error", handlers.mqttError.bind(this))
@@ -141,6 +193,7 @@ export default class Linto extends EventTarget {
 
     async logout(){
         this.stopCommandPipeline()
+        this.stopStreamingPipeline()
         this.stopStreaming()
         this.mqtt.disconnect()
         delete this.mqtt
@@ -165,7 +218,11 @@ export default class Linto extends EventTarget {
         this.triggerHotword()
     }
 
-    async sendCommand() {
+    stopSpeech(){
+        speechSynthesis.cancel()
+    }
+
+    async sendCommandBuffer() {
         try {
             const b64Audio = await this.audio.getCommand()
             this.dispatchEvent(new CustomEvent("command_acquired"))
@@ -185,6 +242,56 @@ export default class Linto extends EventTarget {
             }, this.commandTimeout)
         } catch (e) {
             this.dispatchEvent(new CustomEvent("command_error", {
+                detail: e
+            }))
+        }
+    }
+
+
+    async sendCommandText(text){
+        this.sendLintoText(text, {status : 'text'})
+    }
+
+    async sendChatbotText(text){
+        this.sendLintoText(text, {status : 'chatbot'})
+    }
+
+    // detail : contains event information
+    async sendLintoText(text, detail) {
+        try {
+            this.dispatchEvent(new CustomEvent(`${detail.status}_acquired`))
+            const id = await this.mqtt.publishText(text, detail)
+            this.dispatchEvent(new CustomEvent(`${detail.status}_published`, {
+                detail: id
+            }))
+            setTimeout(() => {
+                // Check if id is still in the array of "to be processed commands"
+                // Mqtt handles itself the removal of received transcriptions
+                if (this.mqtt && this.mqtt.pendingCommandIds.includes(id)) {
+                    this.dispatchEvent(new CustomEvent("command_timeout", {
+                        detail: id
+                    }))
+
+                }
+            }, this.commandTimeout)
+        } catch (e) {
+            console.log(e)
+            this.dispatchEvent(new CustomEvent("command_error", {
+                detail: e
+            }))
+        }
+    }
+
+    async triggerAction(payload, skillName, eventName){
+        try{
+            this.dispatchEvent(new CustomEvent("action_acquired"))
+            const id = await this.mqtt.publishAction(payload, skillName, eventName)
+            this.dispatchEvent(new CustomEvent("action_published", {
+                detail: id
+            }))
+        }catch(e){
+            console.log(e)
+            this.dispatchEvent(new CustomEvent("action_error", {
                 detail: e
             }))
         }

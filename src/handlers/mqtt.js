@@ -32,19 +32,31 @@ export function mqttMessage(topic, payload) {
         const message = new Object()
         message.payload = JSON.parse(payload.toString())
         switch (command) {
-            // Command pipeline answers for tolinto/${sessionId}/nlp/file/${fileId}
+            // Command pipeline answers for ${clientCode}/tolinto/${sessionId}/nlp/file/${fileId}
             case "nlp":
                 this.pendingCommandIds = this.pendingCommandIds.filter(element => element !== topicArray[5]) //removes from array of files to process
                 // Say is the final step of a ask/ask/.../say transaction
                 if (message.payload.behavior.say) this.conversationData = {}
                 // otherwise sets local conversation data to the received value
                 else if (message.payload.behavior.ask) this.conversationData = message.payload.behavior.conversationData
-                // customAction
+
                 this.dispatchEvent(new CustomEvent(command, {
                     detail: message.payload
                 }))
                 break
-                // Received on connection tolinto/${sessionId}/tts_lang/
+            case "chatbot":
+                this.pendingCommandIds = this.pendingCommandIds.filter(element => element !== topicArray[4]) //removes from array of files to process
+                this.dispatchEvent(new CustomEvent("chatbot_feedback", {
+                    detail: message.payload
+                }))
+
+                break
+            case "customAction":
+                this.dispatchEvent(new CustomEvent("action_feedback", {
+                    detail: message.payload
+                }))
+                break
+            // Received on connection tolinto/${sessionId}/tts_lang/
             case "tts_lang":
                 this.dispatchEvent(new CustomEvent(command, {
                     detail: message.payload
@@ -52,30 +64,30 @@ export function mqttMessage(topic, payload) {
                 break
             case "streaming":
                 if (topicArray[4] == 'start') {
-                    message.payload = JSON.parse(payload.toString()) // Received a start streaming ack
                     this.dispatchEvent(new CustomEvent("streaming_start_ack", {
                         detail: message.payload
                     }))
                 }
                 if (topicArray[4] == 'stop') {
-                    message.payload = JSON.parse(payload.toString()) // Received a stop streaming ack
                     this.dispatchEvent(new CustomEvent("streaming_stop_ack", {
                         detail: message.payload
                     }))
                 }
                 if (topicArray[4] == 'chunk') {
-                    message.payload = JSON.parse(payload.toString()) // Received a streaming chunk of data
                     this.dispatchEvent(new CustomEvent("streaming_chunk", {
                         detail: message.payload
                     }))
                 }
                 if (topicArray[4] == 'final') {
-                    message.payload = JSON.parse(payload.toString()) // Received a streaming chunk of data
                     this.dispatchEvent(new CustomEvent("streaming_final", {
                         detail: message.payload
                     }))
                 }
-
+                if (topicArray[4] == 'error') {
+                    this.dispatchEvent(new CustomEvent("streaming_fail", {
+                        detail: message.payload
+                    }))
+                }
                 break
         }
     } catch (e) {
