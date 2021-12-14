@@ -69,7 +69,7 @@ This command might throw an error if something bad occurs
 - startHotword()
 - stopHotword()
 - sendCommandText("blahblah") // Use chatbot pipeline 
-- sendChatbotText("blahblah") // Publish text to linto (bypass transcribe) 
+- sendWidgetText("blahblah") // Publish text to linto (bypass transcribe) 
 - triggerAction(payload, skillName, eventName) // Publish payload to the desired skill/event
 - say("blahblah") // Use browser text to speech
 - ask("blahblah ?") // Uses browser text to speech and immediatly triggers hotword when audiosynthesis is complete

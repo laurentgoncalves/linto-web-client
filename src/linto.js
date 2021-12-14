@@ -11,15 +11,15 @@ export default class Linto extends EventTarget {
         this.browser = UaDeviceDetector.parseUserAgent(window.navigator.userAgent)
         this.commandTimeout = commandTimeout
         this.lang = "en-US" // default
-        // Status
+            // Status
         this.commandPipeline = false
         this.streamingPipeline = false
         this.streaming = false
         this.hotword = false
         this.event = {
-            nlp : false
-        }
-        // Server connexion
+                nlp: false
+            }
+            // Server connexion
         this.httpAuthServer = httpAuthServer
         this.requestToken = requestToken
     }
@@ -67,7 +67,7 @@ export default class Linto extends EventTarget {
         delete this.audio
     }
 
-    startStreamingPipeline(){
+    startStreamingPipeline() {
         if (!this.streamingPipeline && !this.hotword && this.audio) {
             this.streamingPipeline = true
             this.startHotword(false)
@@ -75,7 +75,7 @@ export default class Linto extends EventTarget {
         }
     }
 
-    stopStreamingPipeline(){
+    stopStreamingPipeline() {
         if (this.streamingPipeline && this.hotword && this.audio) {
             this.streamingPipeline = false
             this.stopHotword()
@@ -102,7 +102,7 @@ export default class Linto extends EventTarget {
     startHotword(enableCommandPipeline = true) {
         if (!this.hotword && this.audio) {
             this.hotword = true
-            if(enableCommandPipeline) this.hotwordHandler = handlers.hotwordCommandBuffer.bind(this)
+            if (enableCommandPipeline) this.hotwordHandler = handlers.hotwordCommandBuffer.bind(this)
             else this.hotwordHandler = handlers.hotwordStreaming.bind(this)
             this.audio.hotword.addEventListener("hotword", this.hotwordHandler)
         }
@@ -119,29 +119,29 @@ export default class Linto extends EventTarget {
         if (!this.streaming && this.mqtt && this.audio) {
             this.streaming = true
             this.mqtt.startStreaming(this.audio.downSampler.options.targetSampleRate, metadata)
-            // We wait start streaming acknowledgment returning from MQTT before actualy start to publish audio frames.
+                // We wait start streaming acknowledgment returning from MQTT before actualy start to publish audio frames.
         }
     }
 
     stopStreaming() {
         if (this.streaming) {
             this.streaming = false
-            // We immediatly stop streaming audio without waiting stop streaming acknowledgment
+                // We immediatly stop streaming audio without waiting stop streaming acknowledgment
             this.audio.downSampler.removeEventListener("downSamplerFrame", this.streamingPublishHandler)
             this.mqtt.stopStreaming()
         }
     }
 
-    addEventNlp(){
-        if(!this.event.nlp){
+    addEventNlp() {
+        if (!this.event.nlp) {
             this.nlpAnswerHandler = handlers.nlpAnswer.bind(this)
             this.mqtt.addEventListener("nlp", this.nlpAnswerHandler)
             this.event.nlp = true
         }
     }
 
-    removeEventNlp(){
-        if(this.event.nlp){
+    removeEventNlp() {
+        if (this.event.nlp) {
             this.event.nlp = false
             this.mqtt.removeEventListener("nlp", this.nlpAnswerHandler)
         }
@@ -151,7 +151,7 @@ export default class Linto extends EventTarget {
      * Actions
      *********/
     async login() {
-        return new Promise(async (resolve, reject) => {
+        return new Promise(async(resolve, reject) => {
             let auth
             try {
                 auth = await axios.post(this.httpAuthServer, {
@@ -170,7 +170,7 @@ export default class Linto extends EventTarget {
                 this.userInfo = auth.data.user
                 this.mqttInfo = auth.data.mqttConfig
                 this.mqtt = new MqttClient()
-                // Mqtt
+                    // Mqtt
                 this.mqtt.addEventListener("tts_lang", handlers.ttsLangAction.bind(this))
                 this.mqtt.addEventListener("streaming_start_ack", handlers.streamingStartAck.bind(this))
                 this.mqtt.addEventListener("streaming_chunk", handlers.streamingChunk.bind(this))
@@ -191,7 +191,7 @@ export default class Linto extends EventTarget {
         })
     }
 
-    async logout(){
+    async logout() {
         this.stopCommandPipeline()
         this.stopStreamingPipeline()
         this.stopStreaming()
@@ -218,7 +218,7 @@ export default class Linto extends EventTarget {
         this.triggerHotword()
     }
 
-    stopSpeech(){
+    stopSpeech() {
         speechSynthesis.cancel()
     }
 
@@ -248,12 +248,12 @@ export default class Linto extends EventTarget {
     }
 
 
-    async sendCommandText(text){
-        this.sendLintoText(text, {status : 'text'})
+    async sendCommandText(text) {
+        this.sendLintoText(text, { status: 'text' })
     }
 
-    async sendChatbotText(text){
-        this.sendLintoText(text, {status : 'chatbot'})
+    async sendWidgetText(text) {
+        this.sendLintoText(text, { status: 'chatbot' })
     }
 
     // detail : contains event information
@@ -282,14 +282,14 @@ export default class Linto extends EventTarget {
         }
     }
 
-    async triggerAction(payload, skillName, eventName){
-        try{
+    async triggerAction(payload, skillName, eventName) {
+        try {
             this.dispatchEvent(new CustomEvent("action_acquired"))
             const id = await this.mqtt.publishAction(payload, skillName, eventName)
             this.dispatchEvent(new CustomEvent("action_published", {
                 detail: id
             }))
-        }catch(e){
+        } catch (e) {
             console.log(e)
             this.dispatchEvent(new CustomEvent("action_error", {
                 detail: e

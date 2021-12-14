@@ -23,8 +23,8 @@
     "scripts": {
         "test": "parcel tests/index.html --out-dir dev-build --log-level 4 --no-cache",
         "build": "parcel build src/linto.js --log-level 4 --no-cache --no-source-maps --detailed-report --out-file linto.min.js",
-        "build-chatbot": "parcel build src/chatbot.js --log-level 4 --no-cache --no-source-maps --detailed-report --out-file chatbot.min.js",
-        "test-chatbot": "parcel tests/chatbot/index.html --out-dir dev-build --log-level 4 --no-cache"
+        "build-widget": "parcel build src/widget.js --log-level 4 --no-cache --no-source-maps --detailed-report --out-file linto.widget.min.js",
+        "test-widget": "parcel tests/widget/index.html --out-dir dev-build --log-level 4 --no-cache"
     },
     "repository": {
         "type": "git",
