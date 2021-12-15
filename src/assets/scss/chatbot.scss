@@ -97,15 +97,7 @@ button {
         display: inline-block;
         width: 80px;
         height: 80px;
-        &.sleeping {
-            background: red;
-        }
-        &.awake {
-            background: yellow;
-        }
-        &:hover {
-            background: #ccc;
-        }
+        background-color: transparent;
     }
 }
 
@@ -290,7 +282,7 @@ button {
                 color: #fff;
             }
         }
-        &.widget {
+        &.widget-bubble {
             justify-content: flex-start;
             .content-item {
                 @include borderRadiusMulti(10px,
@@ -301,7 +293,7 @@ button {
                 color: #fff;
             }
         }
-        &.user {
+        &.user-bubble {
             justify-content: flex-end;
             .content-item {
                 @include borderRadiusMulti(10px,

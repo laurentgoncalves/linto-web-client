@@ -32,6 +32,10 @@ export default class Widget {
         this.writingTarget = null
         this.streamingContent = ''
 
+        /* SETTINGS */
+        this.hotwordEnabled = true
+        this.audioResponse = true
+
         /* ANIMATIONS */
         this.widgetRightCornerAnimation = null
 
@@ -54,7 +58,6 @@ export default class Widget {
         this.widgetAwakeAnimation = lintoAwakeJson
         this.widgetErrorAnimation = errorJson
         this.widgetValidateAnimation = validationJson
-
 
         /* INITIALIZATION */
         this.init(data)
@@ -150,6 +153,8 @@ export default class Widget {
             const widgetSettings = document.getElementById('widget-settings')
             const widgetBody = document.getElementById('widget-main-body')
 
+            this.beep = new Audio(audioFile)
+            this.beep.volume = 0.1
 
             // Widget Show button (right corner animation)
             const widgetShowBtn = document.getElementById('widget-show-btn')
@@ -158,7 +163,6 @@ export default class Widget {
             }
             widgetShowBtn.onclick = () => {
                 this.openWidget()
-
             }
 
             // Widget close init frame buttons
@@ -169,45 +173,61 @@ export default class Widget {
             }
 
             // Start widget
-            widgetStartBtn.onclick = () => {
-                // INIT LINTO
+            widgetStartBtn.onclick = async() => {
+                await this.initLintoWeb()
                 this.startWidget()
             }
 
-            /*
-                        // Init audio beep.mp3
-                        this.beep = new Audio(audioFile)
-                        this.beep.volume = 0.1
+            // Collapse widget 
+            widgetCollapseBtn.onclick = () => {
+                this.collapseWidget()
+            }
 
-
-                        // Binding actions buttons
-                        const initBtn = document.getElementById('linto-widget-init-btn')
-                        const closeFrameBtn = document.getElementById('init-frame-btn-close')
-                        const enableWidgetBtn = document.getElementById('init-frame-btn-enable')
-
-                        this.setLintoRightCornerAnimation('sleep')
-
-                        // Toggle initialisation frame
-                        initBtn.onclick = (e) => {
-                            this.toggleInitFrame()
+            // Show / Hide widget setings
+            widgetSettingsBtn.onclick = () => {
+                    if (widgetSettingsBtn.classList.contains('closed')) {
+                        this.showSettings()
+                    } else if (widgetSettingsBtn.classList.contains('opened')) {
+                        this.hideSettings()
+                    }
+                }
+                // Widget MIC BTN
+            const inputArea = document.getElementById('widget-main-footer')
+            const txtBtn = document.getElementById('widget-msg-btn')
+            const micBtn = document.getElementById('widget-mic-btn')
+            micBtn.onclick = async() => {
+                if (inputArea.classList.contains('mic-disabled')) {
+                    txtBtn.classList.remove('txt-enabled')
+                    txtBtn.classList.add('txt-disabled')
+                    inputArea.classList.remove('mic-disabled')
+                    inputArea.classList.add('mic-enabled')
+                } else {
+                    if (micBtn.classList.contains('recording')) {
+                        this.widget.stopStreaming()
+                        let userBubbles = document.getElementsByClassName('user-bubble')
+                        let current = userBubbles[userBubbles.length - 1]
+                        if (current.innerHTML.indexOf('loading') >= 0) {
+                            current.remove()
                         }
+                    } else {
+                        this.widget.startStreaming()
+                    }
+                }
+            }
 
-                        // Close initialisation frame
-                        closeFrameBtn.onclick = (e) => {
-                            this.toggleInitFrame()
-                        }
+            // Widget SEND BTN
+            txtBtn.onclick = () => {
+                // Disable mic, enable text
+                if (txtBtn.classList.contains('txt-disabled')) {
+                    txtBtn.classList.add('txt-enabled')
+                    txtBtn.classList.remove('txt-disabled')
+                    inputArea.classList.add('mic-disabled')
+                    inputArea.classList.remove('mic-enabled')
+                } else {
+                    console.log('send form')
+                }
+            }
 
-                        // enable minimal streaming mode
-                        enableWidgetBtn.onclick = (e) => {
-                            this.closeInitFrame()
-                            if (this.widgetMode === 'minimal-streaming') {
-                                this.setWidgetMinimal()
-                            } else if (this.widgetMode === 'multi-modal') {
-                                this.setWidgetMultiModal()
-                            }
-                            this.initLintoWeb()
-
-                        }*/
         }
     }
 
@@ -251,7 +271,7 @@ export default class Widget {
     }
 
 
-
+    // WIDGET MAIN 
     openWidget() {
         const widgetShowBtn = document.getElementById('widget-show-btn')
         const widgetMultiModal = document.getElementById('widget-mm')
@@ -274,6 +294,14 @@ export default class Widget {
             this.setWidgetRightCornerAnimation('awake')
         }
     }
+    collapseWidget() {
+        const widgetShowBtn = document.getElementById('widget-show-btn')
+        const widgetMultiModal = document.getElementById('widget-mm')
+        widgetShowBtn.classList.remove('hidden')
+        widgetShowBtn.classList.add('visible')
+        widgetMultiModal.classList.add('hidden')
+        widgetMultiModal.classList.remove('visible')
+    }
     startWidget() {
         const widgetInitFrame = document.getElementById('widget-init-wrapper')
         const widgetMain = document.getElementById('widget-mm-main')
@@ -285,418 +313,30 @@ export default class Widget {
             widgetShowBtn.classList.remove('sleeping')
             widgetShowBtn.classList.add('awake')
             this.setWidgetRightCornerAnimation('awake')
-
         }
     }
 
-    // Show / Hide initialisation frame
-    toggleInitFrame() {
-        const initBtn = document.getElementById('linto-widget-init-btn')
-        const initFrame = document.getElementById('linto-widget-init-frame')
-        if (initFrame.classList.contains('hidden')) {
-            initFrame.classList.remove('hidden')
-            this.setLintoRightCornerAnimation('destroy')
-            initBtn.innerHTML = '<span class="linto-icon"></span>'
-        } else {
-            initFrame.classList.add('hidden')
-            initBtn.innerHTML = ''
-            this.setLintoRightCornerAnimation('sleep')
-        }
+    // WIDGET SETTINGS
+    showSettings() {
+        const widgetSettingsBtn = document.getElementById('widget-mm-settings-btn')
+        const widgetSettings = document.getElementById('widget-settings')
+        const widgetBody = document.getElementById('widget-main-body')
+        widgetSettingsBtn.classList.remove('closed')
+        widgetSettingsBtn.classList.add('opened')
+        widgetSettings.classList.remove('hidden')
+        widgetBody.classList.add('hidden')
     }
-
-    // Close initialisation frame
-    closeInitFrame() {
-        const initBtn = document.getElementById('linto-widget-init-btn')
-        const initFrame = document.getElementById('linto-widget-init-frame')
-        initFrame.classList.add('hidden')
-        initBtn.innerHTML = ''
-    }
-
-    // SET MINIMAL STREAMING MODE
-    setWidgetMinimal() {
-        this.widgetMode = 'minimal-streaming'
-        let jhtml = `
-        <div id="widget-minimal" class="${this.widgetMode} flex row hidden">
-            <button id="widget-ms-close"></button>
-            <div class="widget-ms-container flex1 flex row">
-                <div id="widget-ms-animation" class="widget-animation flex col"></div>
-                <div class="widget-ms-content flex col flex1">
-                    <div id="widget-ms-content-previous" class="widget-ms-content-previous"></div>
-                    <div id="widget-ms-content-current" class="widget-ms-content-current flex col"></div>
-                </div>
-            </div>
-        </div>`
-
-        const widgetCorner = document.getElementById('linto-widget-corner')
-        widgetCorner.innerHTML += `
-        
-        <button id="widget-feedback-btn" class="closed hidden"><span class="icon"></span></button>
-        <div id="widget-feedback-frame" class="hidden">
-            <div class="widget-feedback-header flex row">
-              <button id="widget-feedback-close"></button>
-            </div>
-          <div id="widget-feedback-items"></div>
-        </div>`
-
-        this.widgetContainer.innerHTML += jhtml
-
-        // Minimal mode close button
-        const widgetMSCloseBtn = document.getElementById('widget-ms-close')
-        widgetMSCloseBtn.onclick = (e) => {
-            this.stopAll()
-            this.hideWidgetMinimal()
-        }
-
-        // Minilal mode LinTO button (corner right)
-        const widgetLintoBtn = document.getElementById('linto-widget-init-btn')
-        widgetLintoBtn.onclick = (e) => {
-            this.showWidgetMinimal()
-            this.widget.startStreaming()
-        }
-
-        // Feedback window button
-        const feedbackBtn = document.getElementById('widget-feedback-btn')
-        const feedbackFrame = document.getElementById('widget-feedback-frame')
-        feedbackBtn.onclick = (e) => {
-            if (this.widgetFeedbackContent.length > 0) {
-                if (feedbackFrame.classList.contains('hidden')) {
-                    this.showwidgetFeedback()
-                } else {
-                    this.hidewidgetFeedback()
-                }
-            }
-        }
-
-        // Feedback close window button
-        const feedbackCloseBtn = document.getElementById('widget-feedback-close')
-        feedbackCloseBtn.onclick = (e) => {
-            feedbackFrame.classList.remove('visible')
-            feedbackFrame.classList.add('hidden')
-            feedbackBtn.classList.remove('opened')
-            feedbackBtn.classList.add('closed')
-        }
-
-        // Close Minimal Streaming mode
-        const widgetClose = document.getElementById('widget-close')
-        widgetClose.onclick = (e) => {
-            this.hideWidgetMinimal()
-            this.widgetContainer.innerHTML = ''
-            this.widgetEnabled = false
-            this.widget.stopStreaming()
-            this.widget.stopStreamingPipeline()
-            this.widget.stopAudioAcquisition()
-            this.setLintoRightCornerAnimation('destroy')
-            this.widget.logout()
-            setTimeout(() => {
-                this.init()
-            }, 1000)
-        }
-    }
-
-    // Hide Minimal streaming content Area
-    hideWidgetMinimal() {
-        const widgetRightCorner = document.getElementById('linto-widget-corner')
-        const widgetMS = document.getElementById('widget-minimal')
-        if (widgetMS.classList.contains('visible')) {
-            widgetMS.classList.add('hidden')
-            widgetMS.classList.remove('visible')
-            widgetRightCorner.classList.add('visible')
-            widgetRightCorner.classList.remove('hidden')
-            this.updateCurrentMSContent('')
-            this.updatePrevioustMSContent('')
-        }
-    }
-
-    // Show Minimal streaming content Area
-    showWidgetMinimal() {
-        const widgetRightCorner = document.getElementById('linto-widget-corner')
-        const widgetMS = document.getElementById('widget-minimal')
-        if (widgetMS.classList.contains('hidden')) {
-            widgetMS.classList.remove('hidden')
-            widgetMS.classList.add('visible')
-            widgetRightCorner.classList.remove('visible')
-            widgetRightCorner.classList.add('hidden')
-            this.setLintoLeftCornerAnimation('listening')
-        }
+    hideSettings() {
+        const widgetSettingsBtn = document.getElementById('widget-mm-settings-btn')
+        const widgetSettings = document.getElementById('widget-settings')
+        const widgetBody = document.getElementById('widget-main-body')
+        widgetSettingsBtn.classList.remove('opened')
+        widgetSettingsBtn.classList.add('closed')
+        widgetBody.classList.remove('hidden')
+        widgetSettings.classList.add('hidden')
     }
 
 
-
-    // Set chatbot Left corner (Minimal streaming) animation
-    setLintoLeftCornerAnimation(name) { // Lottie animations 
-        let jsonPath = ''
-            // animation
-        if (name === 'listening') {
-            jsonPath = this.widgetMicAnimation
-        } else if (name === 'thinking') {
-            jsonPath = this.widgetThinkAnimation
-        } else if (name === 'talking') {
-            jsonPath = this.widgetTalkAnimation
-        } else if (name === 'sleep') {
-            jsonPath = this.widgetSleepAnimation
-
-        } else if (name === 'destroy') {
-            this.lintoLeftCornerAnimation.destroy()
-        }
-        if (this.lintoLeftCornerAnimation !== null && name !== 'destroy') {
-            this.lintoLeftCornerAnimation.destroy()
-        }
-        if (name !== 'destroy') {
-            this.lintoLeftCornerAnimation = lottie.loadAnimation({
-                container: document.getElementById('widget-ms-animation'),
-                renderer: 'svg',
-                loop: true,
-                autoplay: true,
-                animationData: jsonPath,
-                rendererSettings: {
-                    className: 'linto-animation'
-                }
-            })
-        }
-    }
-
-    // Update Current response (minimal streaming content area) 
-    updateCurrentMSContent(value) {
-        const currentContent = document.getElementById('widget-ms-content-current')
-        currentContent.innerHTML = value
-    }
-
-    // Update Previous response (minimal streaming content area) 
-    updatePrevioustMSContent(value) {
-        const currentContent = document.getElementById('widget-ms-content-previous')
-        currentContent.innerHTML = value
-    }
-
-    // Show feedback window
-    showwidgetFeedback() {
-        const feedbackBtn = document.getElementById('widget-feedback-btn')
-        const feedbackFrame = document.getElementById('widget-feedback-frame')
-        if (this.widgetFeedbackContent.length > 0) {
-            if (feedbackFrame.classList.contains('hidden')) {
-                feedbackFrame.classList.remove('hidden')
-                feedbackFrame.classList.add('visible')
-                feedbackBtn.classList.remove('closed')
-                feedbackBtn.classList.add('opened')
-            }
-        }
-    }
-
-    // Hide feedback windows
-    hidewidgetFeedback() {
-        const feedbackBtn = document.getElementById('widget-feedback-btn')
-        const feedbackFrame = document.getElementById('widget-feedback-frame')
-        if (this.widgetFeedbackContent.length > 0) {
-            if (feedbackFrame.classList.contains('visible')) {
-                feedbackFrame.classList.remove('visible')
-                feedbackFrame.classList.add('hidden')
-                feedbackBtn.classList.remove('opened')
-                feedbackBtn.classList.add('closed')
-            }
-        }
-    }
-
-    // Update feedback window content
-    updatewidgetFeedback(obj) {
-        this.widgetFeedbackContent.push(obj)
-        let feedbackBtn = document.getElementById('widget-feedback-btn')
-        if (feedbackBtn.classList.contains('hidden')) {
-            feedbackBtn.classList.remove('hidden')
-        }
-        const feedbackContent = document.getElementById('widget-feedback-items')
-        feedbackContent.innerHTML += `
-          <div class="feedback-item ${obj.user} flex row">
-            <span class="content">${obj.value}</span>
-          </div>
-        `
-        feedbackContent.scrollTo({
-            top: feedbackContent.offsetHeight,
-            left: 0,
-            behavior: 'smooth'
-        })
-    }
-
-    // Update feedback window data content (links, img...)
-    updatewidgetFeedbackData(data) {
-        let jhtml = '<div class="feedback-item data flex col">'
-        for (let item of data) {
-            if (item.eventType === 'choice') {
-                jhtml += `<button class="widget-event-btn">${item.text}</button>`
-            } else if (item.eventType === 'attachment') {
-                if (!!item.file && item.file.type === 'image') {
-                    jhtml += `<img src="${item.file.url}" class="widget-event-img">`
-                }
-            }
-        }
-        jhtml += '</div>'
-        const feedbackContent = document.getElementById('widget-feedback-items')
-        feedbackContent.innerHTML += jhtml
-
-        let widgetEventsBtn = document.getElementsByClassName('widget-event-btn')
-        for (let btn of widgetEventsBtn) {
-            btn.onclick = (e) => {
-
-                let value = e.target.innerHTML
-                this.updatewidgetFeedback({ user: 'user', value })
-                this.widget.sendWidgetText(value)
-            }
-        }
-        feedbackContent.scrollTo({
-            top: feedbackContent.offsetHeight,
-            left: 0,
-            behavior: 'smooth'
-        })
-    }
-
-    /* LinTO Chatbot MULTI-MODAL MODE */
-    setWidgetMultiModal() {
-        this.widgetMode = 'multi-modal'
-
-        let jhtml = `
-        <div id="widget-multi-modal" class="flex col hidden">
-            <div class="header flex row" style="background-color:${this.primaryColor};">
-                <span class="widget-mm-title flex1" style="color: ${this.widgetTitleColor};">${this.widgetTitle}</span>
-                <div class="widget-mm-actions">
-                    <!-- <button id="widget-mm-mic-mute" class="widget-mm-actions-btn"><span class="icon mic mute"></span></button> -->
-                    <button id="widget-mm-collapse" class="widget-mm-actions-btn"><span class="icon collapse"></span></button>
-                    <button id="widget-mm-close" class="widget-mm-actions-btn"><span class="icon close"></span></button>
-                </div>
-            </div>
-            <div class="body flex1 flex col" id="widget-body">
-              <div id="widget-mm-content" class="flex col">
-              </div>
-            </div>
-            <div class="footer flex row" style="background-color:${this.primaryColor};">
-                <button id="widget-mm-mic"><span class="icon"></span></button>
-                <span id="widget-mm-input" class="flex1" contenteditable></span>
-                <button id="widget-mm-submit"><span class="icon"></span></button>
-            </div>
-        </div>
-        `
-        this.widgetContainer.innerHTML += jhtml
-
-        const widgetLintoBtn = document.getElementById('linto-widget-init-btn')
-        widgetLintoBtn.onclick = (e) => {
-            this.showWidgetMultiModal()
-        }
-
-        const micBtn = document.getElementById('widget-mm-mic')
-        micBtn.onclick = (e) => {
-            this.widget.startStreaming()
-            micBtn.classList.add('streaming')
-        }
-
-        const collapseBtn = document.getElementById('widget-mm-collapse')
-        collapseBtn.onclick = (e) => {
-            this.hideWidgetMultiModal()
-        }
-
-        const widgetInput = document.getElementById('widget-mm-input')
-        const widgetInputSubmit = document.getElementById('widget-mm-submit')
-        widgetInputSubmit.onclick = (e) => {
-            let content = widgetInput.innerHTML
-            if (content.length > 0) {
-                this.updateMultiModalUser(content)
-                this.widget.sendWidgetText(content)
-                widgetInput.innerHTML = ''
-            }
-        }
-
-        const closeWidgetBtn = document.getElementById('widget-mm-close')
-        closeWidgetBtn.onclick = (e) => {
-            this.hideWidgetMultiModal()
-            this.widgetContainer.innerHTML = ''
-            this.widgetEnabled = false
-            this.widget.stopStreaming()
-            this.widget.stopStreamingPipeline()
-            this.widget.stopAudioAcquisition()
-            this.setLintoRightCornerAnimation('destroy')
-            this.widget.logout()
-            setTimeout(() => {
-                this.init()
-            }, 1000)
-        }
-
-    }
-    showWidgetMultiModal(value) {
-        const multiModal = document.getElementById('widget-multi-modal')
-        const widgetLintoBtn = document.getElementById('linto-widget-init-btn')
-        multiModal.classList.remove('hidden')
-        multiModal.classList.add('visible')
-        widgetLintoBtn.classList.remove('visible')
-        widgetLintoBtn.classList.add('hidden')
-        if (!!value && value === 'streaming') {
-            const micBtn = document.getElementById('widget-mm-mic')
-            micBtn.classList.add('streaming')
-        }
-    }
-    hideWidgetMultiModal() {
-        const multiModal = document.getElementById('widget-multi-modal')
-        const widgetLintoBtn = document.getElementById('linto-widget-init-btn')
-        multiModal.classList.remove('visible')
-        multiModal.classList.add('hidden')
-        widgetLintoBtn.classList.remove('hidden')
-        widgetLintoBtn.classList.add('visible')
-    }
-    updateMultiModalUser(content) {
-        const multiModalContent = document.getElementById('widget-mm-content')
-        let jhtml = `
-        <div class="widget-mm-content-item user flex row">
-          <span class="content">${content}</span>
-        </div>`
-        multiModalContent.innerHTML += jhtml
-        document.getElementById('widget-body').scrollTo({
-            top: multiModalContent.offsetHeight,
-            left: 0,
-            behavior: 'smooth'
-        });
-    }
-    updateMultiModalBot(content) {
-        const multiModalContent = document.getElementById('widget-mm-content')
-        let jhtml = `
-      <div class="widget-mm-content-item bot flex row">
-        <span class="content">${content}</span>
-      </div>`
-        multiModalContent.innerHTML += jhtml
-        document.getElementById('widget-body').scrollTo({
-            top: multiModalContent.offsetHeight,
-            left: 0,
-            behavior: 'smooth'
-        });
-    }
-    updateMultiModalData(data) {
-        const multiModalContent = document.getElementById('widget-mm-content')
-        let jhtml = '<div class="widget-mm-content-item data flex col">'
-        for (let item of data) {
-            if (item.eventType === 'choice') {
-                jhtml += `<button class="widget-event-btn">${item.text}</button>`
-            } else if (item.eventType === 'attachment') {
-                if (!!item.file && item.file.type === 'image') {
-                    jhtml += `<img src="${item.file.url}" class="widget-event-img">`
-                }
-            }
-        }
-        jhtml += '</div>'
-        multiModalContent.innerHTML += jhtml
-
-        let widgetEventsBtn = document.getElementsByClassName('widget-event-btn')
-        for (let btn of widgetEventsBtn) {
-            btn.onclick = (e) => {
-                let value = e.target.innerHTML
-                this.updateMultiModalUser(value)
-                this.widget.sendWidgetText(value)
-            }
-        }
-
-        document.getElementById('widget-body').scrollTo({
-            top: multiModalContent.offsetHeight,
-            left: 0,
-            behavior: 'smooth'
-        });
-    }
-    updateMultiModalInput(content) {
-        const multiModalInput = document.getElementById('widget-mm-input')
-        multiModalInput.innerHTML = content
-    }
     closeAll() {
         if (this.widgetMode === 'minimal-streaming') {
             this.hideWidgetMinimal()
@@ -704,6 +344,33 @@ export default class Widget {
             this.hideWidgetMultiModal()
         }
     }
+
+    // WIDGET CONTENT BUBBLES
+    createUserBubble() {
+        const contentWrapper = document.getElementById('widget-main-content')
+        contentWrapper.innerHTML += `
+        <div class="content-bubble flex row user-bubble">
+          <span class="loading"></span>
+        </div> `
+    }
+    setUserBubbleContent(text) {
+        let userBubbles = document.getElementsByClassName('user-bubble')
+        let current = userBubbles[userBubbles.length - 1]
+        current.innerHTML = `<span class="content-item">${text}</span>`
+    }
+    createBubbleWidget()  {
+        const contentWrapper = document.getElementById('widget-main-content')
+        contentWrapper.innerHTML += `
+        <div class="content-bubble flex row widget-bubble">
+          <span class="loading"></span>
+        </div> `
+    }
+    setWidgetBubbleContent(text) {
+        let widgetBubbles = document.getElementsByClassName('widget-bubble')
+        let current = widgetBubbles[widgetBubbles.length - 1]
+        current.innerHTML = `<span class="content-item">${text}</span>`
+    }
+
     say = async(text) => {
         const toSay = await this.widget.say('fr-FR', text)
         return toSay
@@ -752,20 +419,11 @@ export default class Widget {
 
         // Widget login
         await this.widget.login()
-        this.widget.startAudioAcquisition(true, "slinfox", 0.99)
+        this.widget.startAudioAcquisition(true, "linto", 0.99)
         this.widget.startStreamingPipeline()
         this.widgetEnabled = true
 
-        // set animation
-        this.setLintoRightCornerAnimation('validation')
-        this.lintoRightCornerAnimation.onComplete = () => {
-            setTimeout(() => {
-                this.setLintoRightCornerAnimation('awake')
-                const widgetCloseBtn = document.getElementById('widget-close')
-                widgetCloseBtn.classList.remove('hidden')
-                widgetCloseBtn.classList.add('visible')
-            }, 500)
-        }
+
     }
 }
 
