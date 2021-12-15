@@ -33,8 +33,7 @@ export default class Widget {
         this.streamingContent = ''
 
         /* ANIMATIONS */
-        this.lintoRightCornerAnimation = null
-        this.lintoLeftCornerAnimation = null
+        this.widgetRightCornerAnimation = null
 
         /* ELEMENTS */
         this.widgetFeedbackContent = []
@@ -136,55 +135,157 @@ export default class Widget {
         // First initialisation
         if (!this.widgetEnabled) {
             // HTML (right corner)
-            let jhtml = `
-            <div id="linto-widget-corner" class="visible flex row">
-                <button id="linto-widget-init-btn"></button>
-                <button id="widget-close" class="hidden"><span class="icon"></span></button>
-                <div id="linto-widget-init-frame" class="flex col hidden">
-                  <span>Activez la saisie vocale pour poser vos questions oralement.<br/><br/>Cliquez sur le bouton ou dîtes <strong>"LinTO"</strong> pour activer la saisie vocale</span>
-                  <div id="linto-widget-init-frame-btn" class="flex col">
-                    <button id="init-frame-btn-enable" class="enable">Activer</button>
-                    <button id="init-frame-btn-close" class="close">Fermer</button>
-                  </div>
-                </div>
-            </div>`
-
+            let jhtml = require('./assets/template/test.html')
             this.widgetContainer.innerHTML = jhtml
 
+            /* Widget elements */
+            const widgetMultiModal = document.getElementById('widget-mm')
+            const widgetInitFrame = document.getElementById('widget-init-wrapper')
+            const widgetMain = document.getElementById('widget-mm-main')
+            const widgetStartBtn = document.getElementById('widget-init-btn-enable');
+            const widgetCloseInitFrameBtn = document.getElementsByClassName('widget-close-init')
 
-            // Init audio beep.mp3
-            this.beep = new Audio(audioFile)
-            this.beep.volume = 0.1
+            const widgetCollapseBtn = document.getElementById('widget-mm-collapse-btn')
+            const widgetSettingsBtn = document.getElementById('widget-mm-settings-btn')
+            const widgetSettings = document.getElementById('widget-settings')
+            const widgetBody = document.getElementById('widget-main-body')
 
 
-            // Binding actions buttons
-            const initBtn = document.getElementById('linto-widget-init-btn')
-            const closeFrameBtn = document.getElementById('init-frame-btn-close')
-            const enableWidgetBtn = document.getElementById('init-frame-btn-enable')
+            // Widget Show button (right corner animation)
+            const widgetShowBtn = document.getElementById('widget-show-btn')
+            if (widgetShowBtn.classList.contains('sleeping')) {
+                this.setWidgetRightCornerAnimation('sleep')
+            }
+            widgetShowBtn.onclick = () => {
+                this.openWidget()
 
-            this.setLintoRightCornerAnimation('sleep')
-
-            // Toggle initialisation frame
-            initBtn.onclick = (e) => {
-                this.toggleInitFrame()
             }
 
-            // Close initialisation frame
-            closeFrameBtn.onclick = (e) => {
-                this.toggleInitFrame()
-            }
-
-            // enable minimal streaming mode
-            enableWidgetBtn.onclick = (e) => {
-                this.closeInitFrame()
-                if (this.widgetMode === 'minimal-streaming') {
-                    this.setWidgetMinimal()
-                } else if (this.widgetMode === 'multi-modal') {
-                    this.setWidgetMultiModal()
+            // Widget close init frame buttons
+            for (let closeBtn of widgetCloseInitFrameBtn) {
+                closeBtn.onclick = () => {
+                    this.closeWidget()
                 }
-                this.initLintoWeb()
-
             }
+
+            // Start widget
+            widgetStartBtn.onclick = () => {
+                // INIT LINTO
+                this.startWidget()
+            }
+
+            /*
+                        // Init audio beep.mp3
+                        this.beep = new Audio(audioFile)
+                        this.beep.volume = 0.1
+
+
+                        // Binding actions buttons
+                        const initBtn = document.getElementById('linto-widget-init-btn')
+                        const closeFrameBtn = document.getElementById('init-frame-btn-close')
+                        const enableWidgetBtn = document.getElementById('init-frame-btn-enable')
+
+                        this.setLintoRightCornerAnimation('sleep')
+
+                        // Toggle initialisation frame
+                        initBtn.onclick = (e) => {
+                            this.toggleInitFrame()
+                        }
+
+                        // Close initialisation frame
+                        closeFrameBtn.onclick = (e) => {
+                            this.toggleInitFrame()
+                        }
+
+                        // enable minimal streaming mode
+                        enableWidgetBtn.onclick = (e) => {
+                            this.closeInitFrame()
+                            if (this.widgetMode === 'minimal-streaming') {
+                                this.setWidgetMinimal()
+                            } else if (this.widgetMode === 'multi-modal') {
+                                this.setWidgetMultiModal()
+                            }
+                            this.initLintoWeb()
+
+                        }*/
+        }
+    }
+
+    // ANIMATION RIGHT CORNER
+    setWidgetRightCornerAnimation(name) { // Lottie animations 
+        let jsonPath = ''
+
+        // animation
+        if (name === 'listening') {
+            jsonPath = this.widgetMicAnimation
+        } else if (name === 'thinking') {
+            jsonPath = this.widgetThinkAnimation
+        } else if (name === 'talking') {
+            jsonPath = this.widgetTalkAnimation
+        } else if (name === 'sleep') {
+            jsonPath = this.widgetSleepAnimation
+        } else if (name === 'awake') {
+            jsonPath = this.widgetAwakeAnimation
+        } else if (name === 'error') {
+            jsonPath = this.widgetErrorAnimation
+        } else if (name === 'validation') {
+            jsonPath = this.widgetValidateAnimation
+        } else if (name === 'destroy') {
+            this.widgetRightCornerAnimation.destroy()
+        }
+        if (this.widgetRightCornerAnimation !== null && name !== 'destroy') {
+            this.widgetRightCornerAnimation.destroy()
+        }
+        if (name !== 'destroy') {
+            this.widgetRightCornerAnimation = lottie.loadAnimation({
+                container: document.getElementById('widget-show-btn'),
+                renderer: 'svg',
+                loop: !(name === 'validation' || name === 'error'),
+                autoplay: true,
+                animationData: jsonPath,
+                rendererSettings: {
+                    className: 'linto-animation'
+                }
+            })
+        }
+    }
+
+
+
+    openWidget() {
+        const widgetShowBtn = document.getElementById('widget-show-btn')
+        const widgetMultiModal = document.getElementById('widget-mm')
+        widgetShowBtn.classList.remove('visible')
+        widgetShowBtn.classList.add('hidden')
+        widgetMultiModal.classList.remove('hidden')
+        widgetMultiModal.classList.add('visible')
+    }
+    closeWidget() {
+        const widgetShowBtn = document.getElementById('widget-show-btn')
+        const widgetMultiModal = document.getElementById('widget-mm')
+        widgetMultiModal.classList.add('hidden')
+        widgetMultiModal.classList.remove('visible')
+
+        widgetShowBtn.classList.add('visible')
+        widgetShowBtn.classList.remove('hidden')
+        if (widgetShowBtn.classList.contains('sleeping')) {
+            this.setWidgetRightCornerAnimation('sleep')
+        } else {
+            this.setWidgetRightCornerAnimation('awake')
+        }
+    }
+    startWidget() {
+        const widgetInitFrame = document.getElementById('widget-init-wrapper')
+        const widgetMain = document.getElementById('widget-mm-main')
+        const widgetShowBtn = document.getElementById('widget-show-btn')
+
+        widgetInitFrame.classList.add('hidden')
+        widgetMain.classList.remove('hidden')
+        if (widgetShowBtn.classList.contains('sleeping')) {
+            widgetShowBtn.classList.remove('sleeping')
+            widgetShowBtn.classList.add('awake')
+            this.setWidgetRightCornerAnimation('awake')
+
         }
     }
 
@@ -319,43 +420,7 @@ export default class Widget {
         }
     }
 
-    // Set chatbot Right corner animation
-    setLintoRightCornerAnimation(name) { // Lottie animations 
-        let jsonPath = ''
-            // animation
-        if (name === 'listening') {
-            jsonPath = this.widgetMicAnimation
-        } else if (name === 'thinking') {
-            jsonPath = this.widgetThinkAnimation
-        } else if (name === 'talking') {
-            jsonPath = this.widgetTalkAnimation
-        } else if (name === 'sleep') {
-            jsonPath = this.widgetSleepAnimation
-        } else if (name === 'awake') {
-            jsonPath = this.widgetAwakeAnimation
-        } else if (name === 'error') {
-            jsonPath = this.widgetErrorAnimation
-        } else if (name === 'validation') {
-            jsonPath = this.widgetValidateAnimation
-        } else if (name === 'destroy') {
-            this.lintoRightCornerAnimation.destroy()
-        }
-        if (this.lintoRightCornerAnimation !== null && name !== 'destroy') {
-            this.lintoRightCornerAnimation.destroy()
-        }
-        if (name !== 'destroy') {
-            this.lintoRightCornerAnimation = lottie.loadAnimation({
-                container: document.getElementById('linto-widget-init-btn'),
-                renderer: 'svg',
-                loop: !(name === 'validation' || name === 'error'),
-                autoplay: true,
-                animationData: jsonPath,
-                rendererSettings: {
-                    className: 'linto-animation'
-                }
-            })
-        }
-    }
+
 
     // Set chatbot Left corner (Minimal streaming) animation
     setLintoLeftCornerAnimation(name) { // Lottie animations 

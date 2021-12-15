@@ -1,13 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
-$roboto: 'Roboto',
-Arial,
-Helvetica,
-Verdana;
-$green: #00d67d;
-$red: #ec5a5a;
-$blue: #24a7ff;
-$blueDark: #003c65;
-@import "./mixin.scss";
+@import './mixin.scss';
+@import url('https://fonts.googleapis.com/css2?family=Spartan:wght@300;400;500;600;700;800;900&display=swap');
+$spartan: 'Spartan',
+'Arial',
+'Helvetica';
+$blueLight: #59BBEB;
+$blueDark: #055E89;
+$redLight: #FF9292;
+$redDark: #fd3b3b;
+button {
+    border: none;
+    margin: 0;
+    padding: 0;
+    &:hover {
+        cursor: pointer;
+    }
+}
+
 .flex {
     display: flex;
     &.col {
@@ -30,634 +38,427 @@ $blueDark: #003c65;
     flex: 3;
 }
 
-button {
+#widget-mm-wrapper {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10;
+    font-family: $spartan;
+    height: auto;
+    background: yellow;
+}
+
+#widget-mm {
+    width: 260px;
+    height: 480px;
+    display: flex;
+    flex-direction: column;
+    background: rgb(250, 254, 255);
+    background: linear-gradient(0deg, rgba(236, 252, 255, 1) 0%, rgba(250, 254, 255, 1) 100%);
+    @include borderRadius(5px);
+    @include boxShadow(0,
+    0px,
+    8px,
+    0,
+    rgba(0, 20, 66, 0.3));
+    overflow: hidden;
+}
+
+.widget-close-btn {
     display: inline-block;
-    padding: 0;
-    border: none;
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    top: 20px;
+    left: 100%;
+    margin-left: -50px;
+    @include maskImage('../img/widget/close.svg');
+    @include transitionEase();
+    background-color: $blueLight;
     &:hover {
-        cursor: pointer;
+        background-color: $blueDark;
     }
 }
 
-#chatbot-wrapper {
-    font-family: $roboto;
-}
 
+/* Widget corner animation */
 
-/* CHATBOT CORNER + INIT */
-
-#linto-widget-corner {
+#widget-corner-anim {
+    width: 80px;
+    height: 80px;
     position: fixed;
     top: 100%;
     left: 100%;
-    margin-top: -140px;
-    margin-left: -140px;
-    width: 100px;
-    height: 100px;
-    z-index: 900;
-    &.hidden {
-        display: none;
+    margin-left: -100px;
+    margin-top: -100px;
+    #widget-show-btn {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+        &.sleeping {
+            background: red;
+        }
+        &.awake {
+            background: yellow;
+        }
+        &:hover {
+            background: #ccc;
+        }
     }
 }
 
-#linto-widget-init-btn {
-    display: inline-block;
-    width: 100px;
-    height: 100px;
-    @include borderRadius(50px);
-    border: none;
-    overflow: hidden;
-    background-color: transparent;
-    &:hover {
-        @include transform(scale(1.1));
+
+/* INIT FRAME */
+
+#widget-init-wrapper {
+    position: relative;
+    padding: 20px;
+    justify-content: center;
+    align-items: center;
+    .widget-init-title {
+        display: inline-block;
+        width: 100%;
+        text-align: center;
+        font-weight: 800;
+        font-size: 22px;
+        color: #454545;
     }
-    .linto-icon {
+    .widget-init-logo {
         display: inline-block;
         width: 60px;
-        height: 60px;
-        background-image: url('../img/chatbot/linto.svg');
-        background-repeat: no-repeat;
-        background-size: cover;
-        background-position: center;
-    }
-    &.hidden {
-        display: none;
-    }
-}
-
-#widget-close {
-    display: inline-block;
-    width: 30px;
-    height: 30px;
-    position: absolute;
-    top: 100%;
-    left: 100%;
-    margin-left: -30px;
-    margin-top: -20px;
-    @include borderRadius(15px);
-    @include transition(all 0.2s ease);
-    background-color: #fff;
-    @include boxShadow(0,
-    0,
-    4px,
-    0,
-    rgba(0,
-    0,
-    0,
-    0.3));
-    border: none;
-    .icon {
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        margin-top: 2px;
-        @include maskImage('../img/chatbot/close.svg');
-        background-color: $red;
-        @include transition(all 0.2s ease);
-    }
-    &:hover,
-    &.opened {
-        background-color: $red;
-        .icon {
-            background-color: #fff;
-        }
-    }
-    &.hidden {
-        display: none;
-    }
-}
-
-#linto-widget-init-frame {
-    display: inline-block;
-    padding: 20px;
-    position: absolute;
-    width: 260px;
-    bottom: 20px;
-    left: -320px;
-    background-color: rgba(0, 0, 0, 0.85);
-    @include borderRadiusMulti(20px,
-    20px,
-    20px,
-    0px);
-    &.hidden {
-        display: none;
-    }
-    span {
-        display: inline-block;
-        font-size: 15px;
-        color: #fff;
-        line-height: 22px;
-    }
-    #linto-widget-init-frame-btn {
-        margin-top: 20px;
-        justify-content: space-evenly;
-        button {
-            display: inline-block;
-            padding: 5px 10px;
-            color: #fff;
-            border: none;
-            margin: 5px 0;
-            @include borderRadius(3px);
-            font-size: 14px;
-            font-weight: 600;
-            @include transition(all 0.3s ease);
-            &.enable {
-                background-color: $blue;
-            }
-            &.close {
-                background-color: $red;
-            }
-            &:hover {
-                background-color: #fff;
-                &.enable {
-                    color: $blue;
-                }
-                &.close {
-                    color: $red;
-                }
-            }
-        }
-    }
-}
-
-#widget-feedback-btn {
-    display: inline-block;
-    width: 30px;
-    height: 30px;
-    position: absolute;
-    top: 0;
-    left: 100%;
-    margin-left: -30px;
-    @include borderRadius(15px);
-    @include transition(all 0.2s ease);
-    background-color: #fff;
-    @include boxShadow(0,
-    0,
-    4px,
-    0,
-    rgba(0,
-    0,
-    0,
-    0.3));
-    border: none;
-    .icon {
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        margin-top: 2px;
-        @include maskImage('../img/chatbot/feedback.svg');
-        background-color: $blue;
-        @include transition(all 0.2s ease);
-    }
-    &:hover,
-    &.opened {
-        background-color: $blue;
-        .icon {
-            background-color: #fff;
-        }
-    }
-    &.hidden {
-        display: none;
-    }
-}
-
-#widget-feedback-frame {
-    position: absolute;
-    bottom: 120px;
-    left: -175px;
-    @include transition(all 0.1s ease);
-    overflow: hidden;
-    &.hidden {
-        display: none;
-    }
-    &.visible {
-        padding: 20px;
-        border: 1px solid #ccc;
-        background: #fff;
-        width: 280px;
         height: auto;
-        @include borderRadiusMulti(10px,
-        0,
-        0,
-        10px);
+        margin: 10px 0;
+    }
+    .widget-init-content {
+        display: inline-block;
+        font-size: 16px;
+        font-weight: 500;
+        text-align: center;
+        line-height: 24px;
+        color: #333;
+    }
+    .widget-init-btn {
+        display: inline-block;
+        padding: 10px 0 8px 0;
+        margin: 10px 0;
+        width: 100%;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 400;
+        color: #fff;
+        @include borderRadius(20px);
+        @include transitionEase();
         @include boxShadow(0,
         2px,
         4px,
         0,
-        rgba(0,
-        0,
-        0,
-        0.3));
-        .widget-feedback-header {
-            height: 30px;
-            line-height: 30px;
-            color: #777;
-            #widget-feedback-close {
-                display: inline-block;
-                width: 26px;
-                height: 26px;
-                @include maskImage('../img/chatbot/close.svg');
-                @include transition(all 0.1s ease);
-                background-color: #45baeb;
+        rgba(0, 20, 66, 0.2));
+        font-family: $spartan;
+        &.enable {
+            background-color: $blueLight;
+            &:hover {
+                background-color: $blueDark;
                 @include noShadow();
-                outline: none;
-                &:hover {
-                    @include transform(scale(1.3));
-                }
             }
         }
-        #widget-feedback-items {
-            max-height: 280px;
-            overflow: auto;
-        }
-        .feedback-item {
-            font-size: 16px;
-            color: #111;
-            padding: 5px;
-            margin: 5px 0;
-            &.user {
-                justify-content: flex-end;
-                .content {
-                    background-color: #d7f3ff;
-                    @include borderRadiusMulti(5px,
-                    5px,
-                    0,
-                    5px);
-                }
-            }
-            &.bot {
-                justify-content: flex-start;
-                .content {
-                    background-color: #73D5FF;
-                    @include borderRadiusMulti(5px,
-                    5px,
-                    5px,
-                    0);
-                }
-            }
-            .content {
-                padding: 10px;
-                display: inline-block;
-                max-width: 70%;
-                overflow: auto;
-            }
-            .widget-event-btn {
-                display: inline-block;
-                font-size: 15px;
-                padding: 5px;
-                margin: 5px 0;
-                background-color: #fff;
-                max-width: 75%;
-                border: 1px solid $blueDark;
-                color: $blueDark;
-                text-align: center;
-                @include borderRadius(3px);
-                @include transition(all 0.3s ease);
-                &:hover {
-                    background-color: $blueDark;
-                    color: #fff;
-                }
-            }
-            .widget-event-img {
-                display: inline-block;
-                width: 70%;
-                height: auto;
+        &.close {
+            background-color: $redLight;
+            &:hover {
+                background-color: $redDark;
+                @include noShadow();
             }
         }
     }
 }
 
 
-/* MODE: MINIMAL STREAMING */
+/* widget HEADER */
 
-#widget-minimal {
-    display: flex;
-    position: fixed;
-    width: 100%;
-    bottom: 0%;
-    left: 0;
-    background-color: rgba(0, 0, 0, 0.8);
-    align-items: center;
-    justify-content: center;
-    z-index: 900;
-    &.visible {
-        height: 80px;
-        padding: 40px 0;
-        @include transition(all 0.3s ease);
-        overflow: visible;
-    }
-    &.hidden {
-        height: 0px;
-        @include transition(all 0.3s ease);
-        overflow: hidden;
-    }
-    .widget-ms-container {
-        justify-content: center;
-        max-width: 1400px;
-    }
-    #widget-ms-close {
-        display: inline-block;
-        width: 30px;
-        height: 30px;
-        position: absolute;
-        top: 20px;
-        left: 100%;
-        margin-left: -50px;
-        background-color: transparent;
-        @include borderRadius(50px);
-        z-index: 998;
-        border: none;
-        &:after {
-            content: '';
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            position: absolute;
-            top: 0;
-            left: 0%;
-            border: none;
-            @include maskImage('../img/chatbot/close.svg');
-            background-color: rgba(255, 255, 255, 0.7);
-            z-index: 999;
-        }
-        &:hover {
-            &:after {
-                background-color: #fff;
-            }
-        }
-    }
-    &.minimal-audio {
-        &.visible {
-            @include boxShadow(0,
-            2px,
-            6px,
-            0,
-            rgba(0,
-            0,
-            0,
-            0.3));
-            width: 100px;
-            height: 100px;
-            left: 50%;
-            bottom: 20px;
-            margin-left: -50px;
-            @include borderRadius(50px);
-            padding: 0;
-        }
-        #widget-ms-close {
-            top: -10px;
-            left: 100%;
-            margin: 0;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 901;
-        }
-    }
-}
-
-.widget-animation {
-    width: 100px;
-    height: 100px;
-    position: relative;
-    padding: 0;
-    margin: 0;
-}
-
-.widget-ms-content {
-    font-family: $roboto;
-    .widget-ms-content-current {
-        justify-content: center;
-        font-size: 25px;
-        font-weight: 500;
-        color: #fff;
-        height: 80px;
-        padding: 0 40px;
-    }
-    .widget-ms-content-previous {
-        display: inline-block;
-        font-size: 20px;
-        font-weight: 400;
-        color: #939393;
-        height: 20px;
-        padding: 0 40px;
-    }
-}
-
-
-/* MODE: MULTI MODAL */
-
-#widget-multi-modal {
-    width: 280px;
-    height: 420px;
-    position: fixed;
-    bottom: 20px;
-    left: 100%;
-    margin-left: -300px;
-    scroll-behavior: smooth;
-    @include borderRadius(5px);
+.widget-mm-header {
+    height: 30px;
+    padding: 20px 15px;
+    background: #fff;
+    justify-content: space-between;
     @include boxShadow(0,
-    2px,
+    0,
     4px,
     0,
-    rgba(0,
-    0,
-    0,
-    0.3));
-    z-index: 910;
-    overflow: hidden;
-    .header {
-        height: 24px;
-        background-color: $blue;
-        padding: 10px;
-        .widget-mm-title {
-            display: inline-block;
-            height: 24px;
-            line-height: 24px;
-            color: #fff;
-            font-size: 16px;
-            font-weight: 600;
-        }
-        .widget-mm-actions {
-            height: 24px;
-        }
-    }
-    .body {
-        padding: 10px;
-        background-color: #F1F1F1;
-        scroll-behavior: smooth;
-        overflow: auto;
-    }
-    .footer {
-        min-height: 30px;
-        padding: 10px 0;
-        background-color: $blue;
-        padding: 10px;
-        align-items: center;
-    }
-    &.hidden {
-        display: none;
-    }
-}
-
-#widget-mm-content {
-    padding: 10px;
-    scroll-behavior: smooth;
-    .widget-mm-content-item {
-        margin-bottom: 10px;
-        &.user {
-            justify-content: flex-end;
-            .content {
-                background-color: #D7F3FF;
-                @include borderRadiusMulti(5px,
-                5px,
-                0,
-                5px);
-            }
-        }
-        &.bot {
-            justify-content: flex-start;
-            .content {
-                background-color: #73D5FF;
-                @include borderRadiusMulti(5px,
-                5px,
-                5px,
-                0);
-            }
-        }
-        &.data {
-            .widget-event-btn {
-                display: inline-block;
-                font-size: 15px;
-                padding: 5px;
-                margin: 5px 0;
-                background-color: #fff;
-                max-width: 75%;
-                border: 1px solid $blueDark;
-                color: $blueDark;
-                text-align: center;
-                @include borderRadius(3px);
-                @include transition(all 0.3s ease);
-                &:hover {
-                    background-color: $blueDark;
-                    color: #fff;
-                }
-            }
-        }
-        .content {
-            font-size: 15px;
-            line-height: 20px;
-            display: inline-block;
-            max-width: 75%;
-            padding: 10px;
-            overflow: auto;
-        }
-        .widget-event-img {
-            display: inline-block;
-            width: 70%;
-            height: auto;
-        }
-    }
-}
-
-.widget-mm-actions-btn {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    margin: 0 2px;
-    padding: 0;
-    background: transparent;
-    border: none;
-    .icon {
+    rgba(0, 20, 66, 0.3));
+    .widget-mm-title {
         display: inline-block;
-        width: 24px;
-        height: 24px;
-        background-color: rgba(255, 255, 255, 0.8);
-        &.close {
-            @include maskImage('../img/chatbot/close.svg');
-        }
-        &.collapse {
-            @include maskImage('../img/chatbot/collapse.svg');
-        }
-        &.mic {
-            &.mute {
-                @include maskImage('../img/chatbot/mic-muted.svg');
-            }
-        }
-    }
-    &:hover {
-        outline: none;
-        .icon {
-            background-color: #fff;
-        }
-    }
-}
-
-#widget-mm-mic {
-    display: inline-block;
-    width: 30px;
-    height: 30px;
-    margin: 0 10px 0 0;
-    padding: 0;
-    position: relative;
-    @include borderRadius(15px);
-    background-color: #f1f1f1;
-    border: none;
-    overflow: hidden;
-    .icon {
-        display: inline-block;
-        width: 30px;
         height: 30px;
-        background-color: $blue;
-        @include maskImage('../img/chatbot/chatbot-mic.svg');
+        line-height: 30px;
+        font-size: 16px;
+        font-weight: 700;
+        color: $blueLight;
     }
-    &:hover {
-        background-color: $red;
-        .icon {
-            background-color: #fff;
-        }
-    }
-    &.streaming {
-        @include blinkWhiteToRed();
-        .icon {
-            @include blinkRedToWhite();
-        }
-    }
-}
-
-#widget-mm-input {
-    display: inline-block;
-    height: auto;
-    padding: 3px 4px;
-    line-height: 24px;
-    background-color: #fff;
-    max-height: 70px;
-    overflow: auto;
-    border: none;
-    font-size: 15px;
-    &:focus {
-        background-color: #d7efff;
-        outline: none;
-    }
-}
-
-#widget-mm-submit {
-    display: inline-block;
-    width: 30px;
-    height: 30px;
-    margin: 0;
-    background-color: $blueDark;
-    padding: 0;
-    border: none;
-    .icon {
+    #widget-mm-settings-btn {
         display: inline-block;
-        width: 30px;
+        width: 20px;
         height: 30px;
-        @include maskImage('../img/chatbot/send.svg');
-        background-color: rgba(255, 255, 255, 0.8);
-    }
-    &:hover {
-        background-color: #fff;
-        .icon {
+        @include maskImage('../img/widget/settings.svg');
+        background-color: $blueLight;
+        @include transitionEase();
+        &:hover {
+            background-color: $blueDark;
+        }
+        &.opened {
             background-color: $blueDark;
         }
     }
+    #widget-mm-collapse-btn {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        @include maskImage('../img/widget/collapse.svg');
+        background-color: $blueLight;
+        @include transitionEase();
+        &:hover {
+            background-color: $blueDark;
+        }
+    }
+}
+
+#widget-main-content {
+    background: transparent;
+    position: relative;
+    z-index: 1;
+    overflow: auto;
+}
+
+
+/* widget MAIN CONTENT */
+
+#widget-main-body {
+    max-height: 410px;
+}
+
+#widget-main-content {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: 300px;
+    .content-bubble {
+        font-size: 14px;
+        margin: 10px 0;
+        .loading {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-image: url('../img/widget/writing.gif');
+            background-size: 30px 30px;
+        }
+        .content-item {
+            display: inline-block;
+            padding: 10px;
+            max-width: 75%;
+            line-height: 1.3em;
+            @include boxShadow(0,
+            0,
+            4px,
+            0,
+            rgba(0,
+            20,
+            66,
+            0.2));
+        }
+        .content-link {
+            display: inline-block;
+            height: 30px;
+            line-height: 28px;
+            font-size: 14px;
+            font-weight: 500;
+            color: $blueDark;
+            background-color: #fff;
+            border: 1px solid $blueDark;
+            padding: 0 10px;
+            margin-right: 10px;
+            @include borderRadius(15px);
+            @include boxShadow(0,
+            2px,
+            4px,
+            0,
+            rgba(0,
+            20,
+            66,
+            0.3));
+            @include transitionEase();
+            white-space: nowrap;
+            &:hover {
+                background-color: $blueDark;
+                color: #fff;
+            }
+        }
+        &.widget {
+            justify-content: flex-start;
+            .content-item {
+                @include borderRadiusMulti(10px,
+                10px,
+                10px,
+                0);
+                background-color: $blueLight;
+                color: #fff;
+            }
+        }
+        &.user {
+            justify-content: flex-end;
+            .content-item {
+                @include borderRadiusMulti(10px,
+                10px,
+                0,
+                10px);
+                background-color: #fff;
+                color: #333;
+            }
+        }
+    }
+}
+
+
+/* widget FOOTER */
+
+#widget-main-footer {
+    height: auto;
+    padding: 20px 15px;
+    background: $blueLight;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    @include boxShadow(0,
+    0,
+    4px,
+    0,
+    rgba(0,
+    20,
+    66,
+    0.2));
+    #widget-mic-btn {
+        display: inline-block;
+        height: 30px;
+        width: 30px;
+        @include transitionEase();
+        @include borderRadius(30px);
+        background-color: $blueDark;
+        .icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            @include maskImage('../img/widget/mic.svg');
+            background-color: #fff;
+            margin: 3px;
+            @include transitionEase();
+        }
+        &:hover {
+            background-color: #fff;
+            .icon {
+                background-color: $blueDark;
+            }
+        }
+        &.recording {
+            @include blinkWhiteToRed();
+            .icon {
+                @include blinkRedToWhite();
+            }
+        }
+    }
+    #widget-msg-btn {
+        display: inline-block;
+        height: 30px;
+        width: 30px;
+        @include transitionEase();
+        @include borderRadius(20px);
+        background-color: #fff;
+        position: absolute;
+        top: 50%;
+        margin-top: -15px;
+        .icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            @include maskImage('../img/widget/send.svg');
+            background-color: $blueLight;
+            margin: 5px;
+            @include transitionEase();
+            &:hover {
+                background-color: $blueDark;
+            }
+        }
+    }
+    #chabtot-msg-input {
+        border: none;
+        background-color: #fff;
+        padding: 5px;
+        @include borderRadius(15px);
+        width: auto;
+        min-width: 0;
+        margin-left: 10px;
+        @include transitionEase();
+    }
+    &.mic-enabled {
+        padding: 15px;
+        #widget-mic-btn {
+            width: 50px;
+            height: 50px;
+            .icon {
+                width: 34px;
+                height: 34px;
+                margin: 8px;
+            }
+        }
+        #widget-msg-btn {
+            top: 50%;
+            left: 50%;
+            margin-top: -15px;
+            margin-left: 30px;
+        }
+        #chabtot-msg-input {
+            display: none;
+        }
+    }
+    &.mic-disabled {
+        #widget-mic-btn {
+            width: 30px;
+            height: 30px
+        }
+        #widget-msg-btn {
+            left: 100%;
+            margin-left: -45px;
+        }
+        #chabtot-msg-input {
+            display: inline-block;
+            height: 30px;
+            line-height: 30px;
+            padding: 0 30px 0 5px;
+        }
+    }
+}
+
+
+/* widget Settings */
+
+#widget-settings {
+    background: #fff;
+    padding: 20px;
+    .widget-settings-title {
+        display: inline-block;
+        font-size: 18px;
+        font-weight: 700;
+        color: #454545;
+        margin: 10px 0;
+    }
+    .widget-settings-checkbox {
+        margin: 10px 0;
+        .widget-settings-label {
+            font-size: 14px;
+            line-height: 18px;
+            padding-left: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+    }
+}
+
+.hidden {
+    display: none !important;
 }
