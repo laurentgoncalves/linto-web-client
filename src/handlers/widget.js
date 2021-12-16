@@ -75,7 +75,7 @@ export function streamingChunk(event) {
             if (this.debug) {
                 console.log("Streaming chunk received : ", event.detail.behavior.streaming.partial)
             }
-
+            this.setUserBubbleContent(event.detail.behavior.streaming.partial)
         }
         if (event.detail.behavior.streaming.text) {
             if (this.debug) {
@@ -88,20 +88,6 @@ export function streamingChunk(event) {
                 this.widget.sendCommandText(event.detail.behavior.streaming.text)
 
             }, 1000)
-
-            /*if (this.widgetMode === 'minimal-streaming') {
-                this.updateCurrentMSContent(event.detail.behavior.streaming.text)
-                this.updatewidgetFeedback({
-                    user: 'user',
-                    value: event.detail.behavior.streaming.text
-                })
-            } else if (this.widgetMode === 'multi-modal') {
-                this.updateMultiModalUser(event.detail.behavior.streaming.text)
-                this.updateMultiModalInput('')
-                const micBtn = document.getElementById('widget-mm-mic')
-                micBtn.classList.remove('streaming')
-            }
-            */
         }
     }
     // VAD CUSTOM
@@ -162,9 +148,8 @@ export function streamingStart(event) {
     const micBtn = document.getElementById('widget-mic-btn')
     micBtn.classList.add('recording')
     this.createUserBubble()
-
-
 }
+
 export function streamingStop(event) {
     if (this.debug) {
         console.log("Streaming stop")
@@ -234,6 +219,9 @@ export async function customHandler(e) {
     if (this.debug) {
         console.log('customHandler', e)
     }
+    let widgetBubbles = document.getElementsByClassName('widget-bubble')
+    let current = widgetBubbles[widgetBubbles.length - 1]
+    current.remove()
 }
 export function askFeedback(event) {
     if (this.debug) {
@@ -247,35 +235,20 @@ export async function widgetFeedback(e) {
     if (this.debug) {
         console.log('chatbot feedback', e)
     }
-    /* if (!!e.detail && !!e.detail.behavior) {
-         let ask = e.detail.behavior.chatbot.ask
-         let answer = e.detail.behavior.chatbot.answer.text
-         let data = e.detail.behavior.chatbot.answer.data // chatbot answers (links)
+    if (!!e.detail && !!e.detail.behavior.chatbot) {
+        let answer = e.detail.behavior.chatbot.answer.text
+        let data = e.detail.behavior.chatbot.answer.data // chatbot answers (links)
 
-         if (this.widgetMode === 'minimal-streaming') {
-             this.updateCurrentMSContent(answer)
-             this.updatePrevioustMSContent(ask)
-             this.setLintoLeftCornerAnimation('talking')
-             this.updatewidgetFeedback({
-                 user: 'bot',
-                 value: answer
-             })
-             this.updatewidgetFeedbackData(data)
-         }
-         if (this.widgetMode === 'multi-modal') {
-             if (answer.length > 0) {
-                 this.updateMultiModalBot(answer)
-             }
-             this.updateMultiModalData(data)
-         }
-
-         // Response
-         let sayResp = await this.widget.say('fr-FR', answer)
-         if (!!sayResp) {
-             this.stopAll()
-             if (this.widgetMode !== 'multi-modal') {
-                 this.hideWidgetMinimal()
-             }
-         }
-     }*/
+        if (answer.length > 0) {
+            this.setWidgetBubbleContent(answer)
+        }
+        this.setWidgetFeedbackData(data)
+        if (this.audioResponse) {
+            // Response
+            let sayResp = await this.widget.say('fr-FR', answer)
+            if (!!sayResp) {
+                console.log('End audio resp')
+            }
+        }
+    }
 }

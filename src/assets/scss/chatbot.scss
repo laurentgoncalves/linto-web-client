@@ -213,13 +213,6 @@ button {
     }
 }
 
-#widget-main-content {
-    background: transparent;
-    position: relative;
-    z-index: 1;
-    overflow: auto;
-}
-
 
 /* widget MAIN CONTENT */
 
@@ -228,12 +221,18 @@ button {
 }
 
 #widget-main-content {
+    background: transparent;
+    position: relative;
+    z-index: 1;
+    overflow: auto;
     padding: 20px;
     overflow-y: auto;
     max-height: 300px;
+    scroll-behavior: smooth;
     .content-bubble {
         font-size: 14px;
         margin: 10px 0;
+        flex-wrap: wrap;
         .loading {
             display: inline-block;
             width: 30px;
@@ -255,7 +254,7 @@ button {
             66,
             0.2));
         }
-        .content-link {
+        .widget-content-link {
             display: inline-block;
             height: 30px;
             line-height: 28px;
@@ -265,7 +264,7 @@ button {
             background-color: #fff;
             border: 1px solid $blueDark;
             padding: 0 10px;
-            margin-right: 10px;
+            margin: 5px 10px 5px 0;
             @include borderRadius(15px);
             @include boxShadow(0,
             2px,
@@ -281,6 +280,11 @@ button {
                 background-color: $blueDark;
                 color: #fff;
             }
+        }
+        .widget-content-img {
+            display: inline-block;
+            height: 40px;
+            width: auto;
         }
         &.widget-bubble {
             justify-content: flex-start;
@@ -380,12 +384,13 @@ button {
     #chabtot-msg-input {
         border: none;
         background-color: #fff;
-        padding: 5px;
+        padding: 5px 10px;
         @include borderRadius(15px);
         width: auto;
         min-width: 0;
         margin-left: 10px;
         @include transitionEase();
+        outline: none;
     }
     &.mic-enabled {
         padding: 15px;
@@ -421,7 +426,7 @@ button {
             display: inline-block;
             height: 30px;
             line-height: 30px;
-            padding: 0 30px 0 5px;
+            padding: 0 30px 0 10px;
         }
     }
 }
@@ -448,6 +453,32 @@ button {
             font-weight: 500;
             color: #333;
         }
+    }
+}
+
+#widget-quit-btn {
+    display: inline-block;
+    padding: 10px 0 8px 0;
+    margin: 10px 0;
+    width: 100%;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 400;
+    color: #fff;
+    @include borderRadius(20px);
+    @include transitionEase();
+    @include boxShadow(0,
+    2px,
+    4px,
+    0,
+    rgba(0,
+    20,
+    66,
+    0.2));
+    font-family: $spartan;
+    background-color: $redLight;
+    &:hover {
+        background-color: $redDark;
     }
 }
 

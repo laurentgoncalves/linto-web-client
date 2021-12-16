@@ -11,7 +11,7 @@ const lintoAwakeJson = require('./assets/json/linto-awake.json')
 const errorJson = require('./assets/json/error.json')
 const validationJson = require('./assets/json/validation.json')
 const audioFile = require('./assets/audio/beep.mp3')
-
+const htmlTemplate = require('./assets/template/widget-default.html')
 export default class Widget {
     constructor(data) {
         /* REQUIRED */
@@ -47,6 +47,7 @@ export default class Widget {
         this.lintoCustomEvents = []
 
         /* STYLE */
+        this.widgetTemplate = htmlTemplate
         this.widgetTitle = 'LinTO chatbot'
         this.widgetTitleColor = '#fff'
         this.primaryColor = '#24a7ff'
@@ -67,7 +68,8 @@ export default class Widget {
 
         // Set custom parameters
         if (!!data) {
-            // Debug 
+            console.log(data)
+                // Debug 
             if (!!data.debug) {
                 this.debug = data.debug
             }
@@ -89,7 +91,6 @@ export default class Widget {
                 this.lintoCustomEvents = data.lintoCustomEvents
             }
             // Chatbot mode
-
             if (!!data.widgetMode) {
                 this.widgetMode = data.widgetMode
             }
@@ -98,7 +99,17 @@ export default class Widget {
             if (!!data.streamingStopWord) {
                 this.streamingStopWord = data.streamingStopWord
             }
+
+            // Hotword enabled 
+            if (!!data.hotwordEnabled) {
+
+                this.hotwordEnabled = data.hotwordEnabled
+                console.log('ALO?', this.hotwordEnabled)
+            }
             /* STYLE */
+            if (!!data.widgetTemplate) {
+                this.widgetTemplate = data.widgetTemplate
+            }
             if (!!data.widgetTitle) {
                 this.widgetTitle = data.widgetTitle
             }
@@ -138,20 +149,15 @@ export default class Widget {
         // First initialisation
         if (!this.widgetEnabled) {
             // HTML (right corner)
-            let jhtml = require('./assets/template/test.html')
+            let jhtml = htmlTemplate
             this.widgetContainer.innerHTML = jhtml
 
             /* Widget elements */
-            const widgetMultiModal = document.getElementById('widget-mm')
-            const widgetInitFrame = document.getElementById('widget-init-wrapper')
-            const widgetMain = document.getElementById('widget-mm-main')
             const widgetStartBtn = document.getElementById('widget-init-btn-enable');
             const widgetCloseInitFrameBtn = document.getElementsByClassName('widget-close-init')
-
             const widgetCollapseBtn = document.getElementById('widget-mm-collapse-btn')
             const widgetSettingsBtn = document.getElementById('widget-mm-settings-btn')
-            const widgetSettings = document.getElementById('widget-settings')
-            const widgetBody = document.getElementById('widget-main-body')
+            const widgetQuitBtn = document.getElementById('widget-quit-btn')
 
             this.beep = new Audio(audioFile)
             this.beep.volume = 0.1
@@ -185,33 +191,34 @@ export default class Widget {
 
             // Show / Hide widget setings
             widgetSettingsBtn.onclick = () => {
-                    if (widgetSettingsBtn.classList.contains('closed')) {
-                        this.showSettings()
-                    } else if (widgetSettingsBtn.classList.contains('opened')) {
-                        this.hideSettings()
-                    }
+                if (widgetSettingsBtn.classList.contains('closed')) {
+                    this.showSettings()
+                } else if (widgetSettingsBtn.classList.contains('opened')) {
+                    this.hideSettings()
                 }
-                // Widget MIC BTN
-            const inputArea = document.getElementById('widget-main-footer')
+            }
+
+            // Widget MIC BTN
+            const widgetFooter = document.getElementById('widget-main-footer')
+            const inputContent = document.getElementById('chabtot-msg-input')
             const txtBtn = document.getElementById('widget-msg-btn')
             const micBtn = document.getElementById('widget-mic-btn')
             micBtn.onclick = async() => {
-                if (inputArea.classList.contains('mic-disabled')) {
+                if (widgetFooter.classList.contains('mic-disabled')) {
                     txtBtn.classList.remove('txt-enabled')
                     txtBtn.classList.add('txt-disabled')
-                    inputArea.classList.remove('mic-disabled')
-                    inputArea.classList.add('mic-enabled')
-                } else {
-                    if (micBtn.classList.contains('recording')) {
-                        this.widget.stopStreaming()
-                        let userBubbles = document.getElementsByClassName('user-bubble')
-                        let current = userBubbles[userBubbles.length - 1]
-                        if (current.innerHTML.indexOf('loading') >= 0) {
-                            current.remove()
-                        }
-                    } else {
-                        this.widget.startStreaming()
+                    widgetFooter.classList.remove('mic-disabled')
+                    widgetFooter.classList.add('mic-enabled')
+                }
+                if (micBtn.classList.contains('recording')) {
+                    this.widget.stopStreaming()
+                    let userBubbles = document.getElementsByClassName('user-bubble')
+                    let current = userBubbles[userBubbles.length - 1]
+                    if (current.innerHTML.indexOf('loading') >= 0) {
+                        current.remove()
                     }
+                } else {
+                    this.widget.startStreaming()
                 }
             }
 
@@ -221,12 +228,24 @@ export default class Widget {
                 if (txtBtn.classList.contains('txt-disabled')) {
                     txtBtn.classList.add('txt-enabled')
                     txtBtn.classList.remove('txt-disabled')
-                    inputArea.classList.add('mic-disabled')
-                    inputArea.classList.remove('mic-enabled')
+                    widgetFooter.classList.add('mic-disabled')
+                    widgetFooter.classList.remove('mic-enabled')
                 } else {
-                    console.log('send form')
+                    this.createUserBubble()
+                    const text = inputContent.value
+                    this.setUserBubbleContent(text)
+                    this.widget.sendCommandText(text)
+                    this.createBubbleWidget()
                 }
             }
+
+            // Widget CLOSE BTN
+            widgetQuitBtn.onclick = async() => {
+                this.closeWidget()
+                this.stopWidget()
+                await this.stopAll()
+            }
+
 
         }
     }
@@ -302,6 +321,7 @@ export default class Widget {
         widgetMultiModal.classList.add('hidden')
         widgetMultiModal.classList.remove('visible')
     }
+
     startWidget() {
         const widgetInitFrame = document.getElementById('widget-init-wrapper')
         const widgetMain = document.getElementById('widget-mm-main')
@@ -313,6 +333,18 @@ export default class Widget {
             widgetShowBtn.classList.remove('sleeping')
             widgetShowBtn.classList.add('awake')
             this.setWidgetRightCornerAnimation('awake')
+        }
+    }
+    stopWidget() {
+        const widgetInitFrame = document.getElementById('widget-init-wrapper')
+        const widgetMain = document.getElementById('widget-mm-main')
+        const widgetShowBtn = document.getElementById('widget-show-btn')
+        widgetInitFrame.classList.remove('hidden')
+        widgetMain.classList.add('hidden')
+        if (widgetShowBtn.classList.contains('awake')) {
+            widgetShowBtn.classList.add('sleeping')
+            widgetShowBtn.classList.remove('awake')
+            this.setWidgetRightCornerAnimation('sleep')
         }
     }
 
@@ -334,15 +366,6 @@ export default class Widget {
         widgetSettingsBtn.classList.add('closed')
         widgetBody.classList.remove('hidden')
         widgetSettings.classList.add('hidden')
-    }
-
-
-    closeAll() {
-        if (this.widgetMode === 'minimal-streaming') {
-            this.hideWidgetMinimal()
-        } else if (this.widgetMode === 'multi-modal') {
-            this.hideWidgetMultiModal()
-        }
     }
 
     // WIDGET CONTENT BUBBLES
@@ -371,14 +394,52 @@ export default class Widget {
         current.innerHTML = `<span class="content-item">${text}</span>`
     }
 
+    // Update feedback window data content (links, img...)
+    setWidgetFeedbackData(data) {
+        let jhtml = '<div class="content-bubble flex row widget">'
+
+        for (let item of data) {
+            if (item.eventType === 'choice') {
+                jhtml += `<button class="widget-content-link">${item.text}</button>`
+            } else if (item.eventType === 'attachment') {
+                if (!!item.file && item.file.type === 'image') {
+                    jhtml += `<img src="${item.file.url}" class="widget-content-img">`
+                }
+            }
+        }
+        jhtml += '</div>'
+        const contentWrapper = document.getElementById('widget-main-content')
+        contentWrapper.innerHTML += jhtml
+
+        let widgetEventsBtn = document.getElementsByClassName('widget-content-link')
+        for (let btn of widgetEventsBtn) {
+            btn.onclick = (e) => {
+                let value = e.target.innerHTML
+                this.createUserBubble()
+                this.setUserBubbleContent(value)
+                this.createBubbleWidget()
+                console.log(this.widget)
+                this.widget.sendWidgetText(value)
+            }
+        }
+        contentWrapper.scrollTo({
+            top: contentWrapper.offsetHeight,
+            left: 0,
+            behavior: 'smooth'
+        })
+    }
     say = async(text) => {
         const toSay = await this.widget.say('fr-FR', text)
         return toSay
     }
-    stopAll() {
+    async stopAll() {
         this.widget.stopStreaming()
+        this.widget.stopStreamingPipeline()
+        this.widget.stopAudioAcquisition()
         this.widget.stopSpeech()
-        this.setLintoLeftCornerAnimation('destroy')
+        await this.widget.logout
+        this.widgetEnabled = false
+        this.hideSettings()
     }
     initLintoWeb = async() => {
         // Set chatbot
@@ -419,11 +480,20 @@ export default class Widget {
 
         // Widget login
         await this.widget.login()
-        this.widget.startAudioAcquisition(true, "linto", 0.99)
+        console.log('this.hotwordEnabled', this.hotwordEnabled, typeof(this.hotwordEnabled))
+        if (this.hotwordEnabled === 'false') {
+            console.log('false')
+            this.widget.startAudioAcquisition(false, "linto", 0.99)
+        } else {
+            console.log('true')
+
+            this.widget.startAudioAcquisition(true, "linto", 0.99)
+
+        }
         this.widget.startStreamingPipeline()
         this.widgetEnabled = true
 
-
+        console.log(this.widget)
     }
 }
 
