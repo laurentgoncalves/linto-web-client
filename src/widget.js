@@ -22,7 +22,7 @@ export default class Widget {
         /* GLOBAL */
         this.widget = null
         this.widgetEnabled = false
-        this.widgetMode = 'minimal-streaming'
+        this.widgetMode = 'mutli-modal'
         this.widgetContainer = null
         this.debug = false
         this.streamingStopWord = 'stop'
@@ -38,6 +38,7 @@ export default class Widget {
 
         /* ANIMATIONS */
         this.widgetRightCornerAnimation = null
+        this.widgetminimalOverlayAnimation = null
 
         /* ELEMENTS */
         this.widgetFeedbackContent = []
@@ -170,7 +171,6 @@ export default class Widget {
                 settingsAudioResp.checked = false
             }
 
-
             // Audio hotword sound
             this.beep = new Audio(audioFile)
             this.beep.volume = 0.1
@@ -181,7 +181,11 @@ export default class Widget {
                 this.setWidgetRightCornerAnimation('sleep')
             }
             widgetShowBtn.onclick = () => {
-                this.openWidget()
+                if (this.widgetMode === 'minimal-streaming' && this.widgetEnabled) {
+                    console.log('REC MINIMAL')
+                } else {
+                    this.openWidget()
+                }
             }
 
             // Widget close init frame buttons
@@ -273,16 +277,21 @@ export default class Widget {
                 }
             }
 
+            // MINIMAL OVERLAY
+            const closeMinimalOverlayBtn = document.getElementById('widget-ms-close')
+            closeMinimalOverlayBtn.onclick = () => {
+                this.closeMinimalOverlay()
+                this.widget.stopStreaming()
+                this.widget.stopSpeech()
 
-
+            }
         }
     }
 
     // ANIMATION RIGHT CORNER
     setWidgetRightCornerAnimation(name, cb) { // Lottie animations 
         let jsonPath = ''
-
-        // animation
+            // animation
         if (name === 'listening') {
             jsonPath = this.widgetMicAnimation
         } else if (name === 'thinking') {
@@ -319,6 +328,20 @@ export default class Widget {
             }
         }
     }
+    startWidget() {
+        const widgetInitFrame = document.getElementById('widget-init-wrapper')
+        const widgetMain = document.getElementById('widget-mm-main')
+        const widgetShowBtn = document.getElementById('widget-show-btn')
+
+        widgetInitFrame.classList.add('hidden')
+        this.closeWidget()
+        widgetMain.classList.remove('hidden')
+        this.setWidgetRightCornerAnimation('validation', () => {
+            widgetShowBtn.classList.remove('sleeping')
+            widgetShowBtn.classList.add('awake')
+            this.setWidgetRightCornerAnimation('awake')
+        })
+    }
 
     // WIDGET MAIN 
     openWidget() {
@@ -350,21 +373,6 @@ export default class Widget {
         widgetShowBtn.classList.add('visible')
         widgetMultiModal.classList.add('hidden')
         widgetMultiModal.classList.remove('visible')
-    }
-
-    startWidget() {
-        const widgetInitFrame = document.getElementById('widget-init-wrapper')
-        const widgetMain = document.getElementById('widget-mm-main')
-        const widgetShowBtn = document.getElementById('widget-show-btn')
-
-        widgetInitFrame.classList.add('hidden')
-        this.closeWidget()
-        widgetMain.classList.remove('hidden')
-        this.setWidgetRightCornerAnimation('validation', () => {
-            widgetShowBtn.classList.remove('sleeping')
-            widgetShowBtn.classList.add('awake')
-            this.setWidgetRightCornerAnimation('awake')
-        })
     }
     stopWidget() {
         const widgetInitFrame = document.getElementById('widget-init-wrapper')
@@ -479,6 +487,68 @@ export default class Widget {
             left: 0,
             behavior: 'smooth'
         })
+    }
+
+    /* Minimal streaming overlay */
+    setMinimalOverlayAnimation(name, cb) {
+        console.log(this.widgetminimalOverlayAnimation)
+        let jsonPath = ''
+            // animation
+        if (name === 'listening') {
+            jsonPath = this.widgetMicAnimation
+        } else if (name === 'thinking') {
+            jsonPath = this.widgetThinkAnimation
+        } else if (name === 'talking') {
+            jsonPath = this.widgetTalkAnimation
+        } else if (name === 'sleep') {
+            jsonPath = this.widgetSleepAnimation
+        } else if (name === 'destroy') {
+            this.widgetminimalOverlayAnimation.destroy()
+        }
+        if (this.widgetminimalOverlayAnimation !== null && name !== 'destroy') {
+            this.widgetminimalOverlayAnimation.destroy()
+        }
+        if (name !== 'destroy') {
+            this.widgetminimalOverlayAnimation = lottie.loadAnimation({
+                container: document.getElementById('widget-ms-animation'),
+                renderer: 'svg',
+                loop: !(name === 'validation' || name === 'error'),
+                autoplay: true,
+                animationData: jsonPath,
+                rendererSettings: {
+                    className: 'linto-animation'
+                }
+            })
+            this.widgetminimalOverlayAnimation.onComplete = () => {
+                cb()
+            }
+        }
+    }
+
+    openMinimalOverlay() {
+        const widgetShowBtn = document.getElementById('widget-show-btn')
+        const minOverlay = document.getElementById('widget-minimal-overlay')
+        this.closeWidget()
+        widgetShowBtn.classList.remove('visible')
+        widgetShowBtn.classList.add('hidden')
+        minOverlay.classList.remove('hidden')
+        minOverlay.classList.add('visible')
+    }
+    closeMinimalOverlay() {
+        const widgetShowBtn = document.getElementById('widget-show-btn')
+        const minOverlay = document.getElementById('widget-minimal-overlay')
+        widgetShowBtn.classList.add('visible')
+        widgetShowBtn.classList.remove('hidden')
+        minOverlay.classList.add('hidden')
+        minOverlay.classList.remove('visible')
+    }
+    setMinimalOverlayMainContent(txt) {
+        const mainContent = document.getElementById('widget-ms-content-current')
+        mainContent.innerHTML = txt
+    }
+    setMinimalOverlaySecondaryContent(txt) {
+        const secContent = document.getElementById('widget-ms-content-previous')
+        secContent.innerHTML = txt
     }
     say = async(text) => {
         const toSay = await this.widget.say('fr-FR', text)

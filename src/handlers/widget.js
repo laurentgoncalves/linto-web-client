@@ -48,7 +48,12 @@ export function hotword(event) {
         const widgetMultiModal = document.getElementById('widget-mm')
 
         if (widgetMultiModal.classList.contains('hidden')) {
-            this.openWidget()
+            if (this.widgetMode !== 'minimal-streaming') {
+                this.openWidget()
+            } else {
+                this.openMinimalOverlay()
+                this.setMinimalOverlayAnimation('listening')
+            }
         }
     }
 }
@@ -60,7 +65,6 @@ export function commandTimeout(event) {
 export async function sayFeedback(event) {
     if (this.debug) {
         console.log("Saying : ", event.detail.behavior.say.text, " ---> Answer to : ", event.detail.transcript)
-
     }
     let toSay = null
     this.setWidgetBubbleContent(event.detail.behavior.say.text)
@@ -79,6 +83,9 @@ export function streamingChunk(event) {
                 console.log("Streaming chunk received : ", event.detail.behavior.streaming.partial)
             }
             this.setUserBubbleContent(event.detail.behavior.streaming.partial)
+            if (this.widgetMode === 'minimal-streaming') {
+                this.setMinimalOverlayMainContent(event.detail.behavior.streaming.partial)
+            }
         }
         if (event.detail.behavior.streaming.text) {
             if (this.debug) {
@@ -87,9 +94,13 @@ export function streamingChunk(event) {
             this.setUserBubbleContent(event.detail.behavior.streaming.text)
             this.widget.stopStreaming()
             this.createBubbleWidget()
+
+            if (this.widgetMode === 'minimal-streaming') {
+                this.setMinimalOverlayMainContent(event.detail.behavior.streaming.text)
+                this.setMinimalOverlayAnimation('thinking')
+            }
             setTimeout(() => {
                 this.widget.sendCommandText(event.detail.behavior.streaming.text)
-
             }, 1000)
         }
     }
@@ -239,16 +250,27 @@ export async function widgetFeedback(e) {
         console.log('chatbot feedback', e)
     }
     if (!!e.detail && !!e.detail.behavior.chatbot) {
+        let ask = e.detail.behavior.chatbot.ask
         let answer = e.detail.behavior.chatbot.answer.text
         let data = e.detail.behavior.chatbot.answer.data // chatbot answers (links)
 
         if (answer.length > 0) {
             this.setWidgetBubbleContent(answer)
+            if (this.widgetMode === 'minimal-streaming') {
+                this.setMinimalOverlaySecondaryContent(ask)
+                this.setMinimalOverlayMainContent(answer)
+                this.setMinimalOverlayAnimation('talking')
+            }
         }
 
         this.setWidgetFeedbackData(data)
         if (this.audioResponse === 'true') {
-            await this.widget.say('fr-FR', answer)
+            let sayResp = await this.widget.say('fr-FR', answer)
+            if (this.widgetMode === 'minimal-streaming') {
+                if (!!sayResp) {
+                    this.closeMinimalOverlay()
+                }
+            }
         }
     }
 }
