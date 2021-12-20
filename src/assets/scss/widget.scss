@@ -454,28 +454,46 @@ button {
             color: #333;
         }
     }
+    button {
+        display: inline-block;
+        padding: 10px 15px 8px 15px;
+        margin: 10px 0;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 400;
+        color: #fff;
+        @include borderRadius(20px);
+        @include transitionEase();
+        @include boxShadow(0,
+        2px,
+        4px,
+        0,
+        rgba(0,
+        20,
+        66,
+        0.2));
+        font-family: $spartan;
+    }
+}
+
+.widget-settings-btn-container {
+    justify-content: space-evenly;
+    #widget-settings-cancel {
+        background-color: #777;
+        &:hover {
+            background-color: #333;
+        }
+    }
+    #widget-settings-save {
+        background-color: $blueLight;
+        &:hover {
+            background-color: $blueDark;
+        }
+    }
 }
 
 #widget-quit-btn {
-    display: inline-block;
-    padding: 10px 0 8px 0;
-    margin: 10px 0;
     width: 100%;
-    text-align: center;
-    font-size: 16px;
-    font-weight: 400;
-    color: #fff;
-    @include borderRadius(20px);
-    @include transitionEase();
-    @include boxShadow(0,
-    2px,
-    4px,
-    0,
-    rgba(0,
-    20,
-    66,
-    0.2));
-    font-family: $spartan;
     background-color: $redLight;
     &:hover {
         background-color: $redDark;

@@ -5,7 +5,6 @@ window.chatbot = new Widget({
     containerId: 'chatbot-wrapper',
     lintoWebToken: 'LiC8SBbvj73HcpxV',
     lintoWebHost: 'https://alpha.linto.ai/overwatch/local/web/login',
-    lintoSayResponse: true,
     widgetMode: 'multi-modal',
-    hotwordEnabled: 'false'
+    hotwordEnabled: 'true'
 })

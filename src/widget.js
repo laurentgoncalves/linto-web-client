@@ -33,8 +33,8 @@ export default class Widget {
         this.streamingContent = ''
 
         /* SETTINGS */
-        this.hotwordEnabled = true
-        this.audioResponse = true
+        this.hotwordEnabled = 'true'
+        this.audioResponse = 'true'
 
         /* ANIMATIONS */
         this.widgetRightCornerAnimation = null
@@ -68,8 +68,7 @@ export default class Widget {
 
         // Set custom parameters
         if (!!data) {
-            console.log(data)
-                // Debug 
+            // Debug 
             if (!!data.debug) {
                 this.debug = data.debug
             }
@@ -94,7 +93,6 @@ export default class Widget {
             if (!!data.widgetMode) {
                 this.widgetMode = data.widgetMode
             }
-
             // Streaming stop word
             if (!!data.streamingStopWord) {
                 this.streamingStopWord = data.streamingStopWord
@@ -102,9 +100,10 @@ export default class Widget {
 
             // Hotword enabled 
             if (!!data.hotwordEnabled) {
-
                 this.hotwordEnabled = data.hotwordEnabled
-                console.log('ALO?', this.hotwordEnabled)
+            }
+            if (!!data.audioResponse) {
+                this.audioResponse = data.audioResponse
             }
             /* STYLE */
             if (!!data.widgetTemplate) {
@@ -158,7 +157,21 @@ export default class Widget {
             const widgetCollapseBtn = document.getElementById('widget-mm-collapse-btn')
             const widgetSettingsBtn = document.getElementById('widget-mm-settings-btn')
             const widgetQuitBtn = document.getElementById('widget-quit-btn')
+            const widgetCloseSettings = document.getElementById('widget-settings-cancel')
+            const widgetSaveSettings = document.getElementById('widget-settings-save')
 
+            const settingsHotword = document.getElementById('widget-settings-hotword')
+            const settingsAudioResp = document.getElementById('widget-settings-say-response')
+
+            if (this.hotwordEnabled === 'false') {
+                settingsHotword.checked = false
+            }
+            if (this.audioResponse === 'false') {
+                settingsAudioResp.checked = false
+            }
+
+
+            // Audio hotword sound
             this.beep = new Audio(audioFile)
             this.beep.volume = 0.1
 
@@ -189,13 +202,31 @@ export default class Widget {
                 this.collapseWidget()
             }
 
-            // Show / Hide widget setings
+            // Show / Hide widget settings
             widgetSettingsBtn.onclick = () => {
                 if (widgetSettingsBtn.classList.contains('closed')) {
                     this.showSettings()
                 } else if (widgetSettingsBtn.classList.contains('opened')) {
                     this.hideSettings()
                 }
+            }
+
+            // Widget CLOSE BTN
+            widgetQuitBtn.onclick = async() => {
+                this.closeWidget()
+                this.stopWidget()
+                await this.stopAll()
+            }
+
+            // Close Settings
+            widgetCloseSettings.onclick = () => {
+                this.hideSettings()
+            }
+
+            // Save Settings
+            widgetSaveSettings.onclick = () => {
+                // TODO
+                this.updateWidgetSettings()
             }
 
             // Widget MIC BTN
@@ -209,6 +240,7 @@ export default class Widget {
                     txtBtn.classList.add('txt-disabled')
                     widgetFooter.classList.remove('mic-disabled')
                     widgetFooter.classList.add('mic-enabled')
+
                 }
                 if (micBtn.classList.contains('recording')) {
                     this.widget.stopStreaming()
@@ -230,6 +262,8 @@ export default class Widget {
                     txtBtn.classList.remove('txt-disabled')
                     widgetFooter.classList.add('mic-disabled')
                     widgetFooter.classList.remove('mic-enabled')
+                    inputContent.focus()
+
                 } else {
                     this.createUserBubble()
                     const text = inputContent.value
@@ -239,19 +273,13 @@ export default class Widget {
                 }
             }
 
-            // Widget CLOSE BTN
-            widgetQuitBtn.onclick = async() => {
-                this.closeWidget()
-                this.stopWidget()
-                await this.stopAll()
-            }
 
 
         }
     }
 
     // ANIMATION RIGHT CORNER
-    setWidgetRightCornerAnimation(name) { // Lottie animations 
+    setWidgetRightCornerAnimation(name, cb) { // Lottie animations 
         let jsonPath = ''
 
         // animation
@@ -286,9 +314,11 @@ export default class Widget {
                     className: 'linto-animation'
                 }
             })
+            this.widgetRightCornerAnimation.onComplete = () => {
+                cb()
+            }
         }
     }
-
 
     // WIDGET MAIN 
     openWidget() {
@@ -328,12 +358,13 @@ export default class Widget {
         const widgetShowBtn = document.getElementById('widget-show-btn')
 
         widgetInitFrame.classList.add('hidden')
+        this.closeWidget()
         widgetMain.classList.remove('hidden')
-        if (widgetShowBtn.classList.contains('sleeping')) {
+        this.setWidgetRightCornerAnimation('validation', () => {
             widgetShowBtn.classList.remove('sleeping')
             widgetShowBtn.classList.add('awake')
             this.setWidgetRightCornerAnimation('awake')
-        }
+        })
     }
     stopWidget() {
         const widgetInitFrame = document.getElementById('widget-init-wrapper')
@@ -366,6 +397,28 @@ export default class Widget {
         widgetSettingsBtn.classList.add('closed')
         widgetBody.classList.remove('hidden')
         widgetSettings.classList.add('hidden')
+    }
+    updateWidgetSettings() {
+        const hotwordCheckbox = document.getElementById('widget-settings-hotword')
+        const audioRespCheckbox = document.getElementById('widget-settings-say-response')
+        if (!hotwordCheckbox.checked && this.hotwordEnabled === 'true') {
+            this.hotwordEnabled = 'false'
+            this.widget.stopStreamingPipeline()
+            this.widget.stopAudioAcquisition()
+            this.widget.startAudioAcquisition(false, "linto", 0.99)
+            this.widget.startStreamingPipeline()
+        } else if (hotwordCheckbox.checked && this.hotwordEnabled === 'false') {
+            this.hotwordEnabled = 'true'
+            this.widget.stopStreamingPipeline()
+            this.widget.stopAudioAcquisition()
+            this.widget.startAudioAcquisition(true, "linto", 0.99)
+            this.widget.startStreamingPipeline()
+        }
+        if (!audioRespCheckbox.checked && this.audioResponse === 'true') {
+            this.audioResponse = 'false'
+        } else if (audioRespCheckbox.checked && this.audioResponse === 'false') {
+            this.audioResponse = 'true'
+        }
     }
 
     // WIDGET CONTENT BUBBLES
@@ -418,7 +471,6 @@ export default class Widget {
                 this.createUserBubble()
                 this.setUserBubbleContent(value)
                 this.createBubbleWidget()
-                console.log(this.widget)
                 this.widget.sendWidgetText(value)
             }
         }
@@ -480,20 +532,15 @@ export default class Widget {
 
         // Widget login
         await this.widget.login()
-        console.log('this.hotwordEnabled', this.hotwordEnabled, typeof(this.hotwordEnabled))
+
         if (this.hotwordEnabled === 'false') {
-            console.log('false')
             this.widget.startAudioAcquisition(false, "linto", 0.99)
         } else {
-            console.log('true')
-
             this.widget.startAudioAcquisition(true, "linto", 0.99)
-
         }
+
         this.widget.startStreamingPipeline()
         this.widgetEnabled = true
-
-        console.log(this.widget)
     }
 }
 

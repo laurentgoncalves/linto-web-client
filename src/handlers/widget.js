@@ -62,8 +62,11 @@ export async function sayFeedback(event) {
         console.log("Saying : ", event.detail.behavior.say.text, " ---> Answer to : ", event.detail.transcript)
 
     }
+    let toSay = null
     this.setWidgetBubbleContent(event.detail.behavior.say.text)
-    const toSay = await this.widget.say('fr-FR', event.detail.behavior.say.text)
+    if (this.audioResponse === 'true') {
+        toSay = await this.widget.say('fr-FR', event.detail.behavior.say.text)
+    }
     return toSay
 }
 
@@ -242,13 +245,10 @@ export async function widgetFeedback(e) {
         if (answer.length > 0) {
             this.setWidgetBubbleContent(answer)
         }
+
         this.setWidgetFeedbackData(data)
-        if (this.audioResponse) {
-            // Response
-            let sayResp = await this.widget.say('fr-FR', answer)
-            if (!!sayResp) {
-                console.log('End audio resp')
-            }
+        if (this.audioResponse === 'true') {
+            await this.widget.say('fr-FR', answer)
         }
     }
 }
