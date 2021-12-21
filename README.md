@@ -118,4 +118,64 @@ Available events :
 __NOTE__ : See proposed implementation in ./tests/index.js
 
 
+# linto-web-client Widget
+
+
+## Building sources 
+
+```
+npm install
+npm run build-widget
+```
+
+Those commands will build **linto.widget.min.js** file in the */dist* folder
+
+## Using library
+
+Import **linto.widget.min.js** file to your web page. Once it's done, you can create a **new Widget()** object and set custom parameters.
+
+```html
+<script type="text/javascript" src="YOUR_PATH/linto.widget.min.js"></script>
+<script type="text/javascript">
+window.chatbot = new Widget({
+    debug: false,
+    containerId: CONTAINER_BLOCK_HTML_ID,
+    lintoWebToken: LINTO_APPLICATION_TOKEN,
+    lintoWebHost: LINTO_APPLICATION_HOST,
+    widgetMode: WIDGET_MODE, // Available modes: 'multi-modal','minimal-streaming'
+    hotwordEnabled: 'true', // 'true' or 'false' (string)
+    audioResponse: 'true', // 'true' or 'false' (string)
+    lintoCustomEvents: [{flag: 'string', func: 'function'}]
+})
+</script>
+```
+
+## Testing
+
+You can try the library localy by running the following command:
+```
+npm run test-widget
+```
+
+You can change widget parameteres for your tests by updating parameters in the following file: **/tests/widget/index.html**
+
+## Custom handlers
+
+To set custom handlers on events, you can write your own functions and call it when you declare your "new Widget". Here is an example: 
+
+```javascript
+
+const myCustomFunction = (event) => {
+  console.log('Here is the code')
+}
+window.chatbot = new Widget({
+    ...,
+    lintoCustomEvents: [{
+      flag: 'my_custom_event', 
+      func: (event) => {
+        myCustomFunction(event)
+      }
+    }]
+})
+```
 

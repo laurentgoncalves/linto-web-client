@@ -229,7 +229,6 @@ export default class Widget {
 
             // Save Settings
             widgetSaveSettings.onclick = () => {
-                // TODO
                 this.updateWidgetSettings()
             }
 
@@ -489,9 +488,8 @@ export default class Widget {
         })
     }
 
-    /* Minimal streaming overlay */
+    // Minimal streaming overlay 
     setMinimalOverlayAnimation(name, cb) {
-        console.log(this.widgetminimalOverlayAnimation)
         let jsonPath = ''
             // animation
         if (name === 'listening') {
