@@ -106,7 +106,7 @@ export function streamingChunk(event) {
     }
     // VAD CUSTOM
     else if (this.streamingMode === 'vad-custom' && this.writingTarget !== null) {
-        /*if (event.detail.behavior.streaming.partial) {
+        if (event.detail.behavior.streaming.partial) {
             if (this.debug) {
                 console.log("Streaming chunk received : ", event.detail.behavior.streaming.partial)
             }
@@ -120,11 +120,11 @@ export function streamingChunk(event) {
 
             this.widget.stopStreaming()
             this.widget.startStreamingPipeline()
-        }*/
+        }
     }
     // STREAMING + STOP WORD ("stop")
     else if (this.streamingMode === 'infinite' && this.writingTarget !== null) {
-        /*if (event.detail.behavior.streaming.partial) {
+        if (event.detail.behavior.streaming.partial) {
             if (this.debug) {
                 console.log("Streaming chunk received : ", event.detail.behavior.streaming.partial)
             }
@@ -142,17 +142,10 @@ export function streamingChunk(event) {
                 this.streamingContent += (this.streamingContent.length > 0 ? '\n' : '') + event.detail.behavior.streaming.text
                 this.writingTarget.innerHTML = this.streamingContent
             }
-
-        }*/
+        }
     }
 }
-export function customStreaming(streamingMode, target) {
-    this.beep.play()
-    this.streamingMode = streamingMode
-    this.writingTarget = document.getElementById(target)
-    this.widget.stopStreamingPipeline()
-    this.widget.startStreaming()
-}
+
 
 export function streamingStart(event) {
     this.beep.play()
@@ -183,25 +176,23 @@ export function streamingFail(event) {
         console.log("Streaming cannot start : ", event.detail)
     }
     if (event.detail.behavior.streaming.status === 'chunk') {
-        /*    this.widget.stopStreaming()
-            this.widget.stopStreamingPipeline()
-        }
-        if (this.widgetMode === 'multi-modal') this.hideWidgetMultiModal()
-        if (this.widgetMode === 'minimal-streaming') this.hideWidgetMinimal()
+        this.widget.stopStreaming()
+        this.widget.stopStreamingPipeline()
+    }
+    if (this.widgetMode === 'multi-modal') this.closeWidget()
+    if (this.widgetMode === 'minimal-streaming') this.closeMinimalOverlay()
 
-        const streamingBtns = document.getElementsByClassName('linto-widget-streaming-btn')
-        for (let btn of streamingBtns) {
-            if (btn.classList.contains('streaming-on')) {
-                btn.classList.remove('streaming-on')
-            }
-        }
+    const micBtn = document.getElementById('widget-mic-btn')
+    if (micBtn.classList.contains('recording')) {
+        micBtn.classList.remove('recording')
+    }
 
-        this.setLintoRightCornerAnimation('error')
-        this.lintoRightCornerAnimation.onComplete = () => {
-            this.widget.startStreamingPipeline()
-            setTimeout(() => {
-                this.setLintoRightCornerAnimation('awake')
-            }, 500)*/
+    this.setWidgetRightCornerAnimation('error')
+    this.widgetRightCornerAnimation.onComplete = () => {
+        this.widget.startStreamingPipeline()
+        setTimeout(() => {
+            this.setWidgetRightCornerAnimation('awake')
+        }, 500)
     }
 }
 export function textPublished(e) {
@@ -273,4 +264,12 @@ export async function widgetFeedback(e) {
             }
         }
     }
+}
+export function customStreaming(streamingMode, target) {
+    console.log('aLLO?')
+    this.beep.play()
+    this.streamingMode = streamingMode
+    this.writingTarget = document.getElementById(target)
+    this.widget.stopStreamingPipeline()
+    this.widget.startStreaming()
 }

@@ -1,6 +1,6 @@
 import Widget from '../../src/widget.js'
 
-window.chatbot = new Widget({
+window.widget = new Widget({
     debug: true,
     containerId: 'chatbot-wrapper',
     lintoWebToken: 'LiC8SBbvj73HcpxV',
@@ -8,3 +8,9 @@ window.chatbot = new Widget({
     widgetMode: 'multi-modal',
     hotwordEnabled: 'true'
 })
+
+const formNameBtn = document.getElementById('form-name-button')
+formNameBtn.onclick = function() {
+    formNameBtn.classList.add('streaming-on')
+    window.widget.customStreaming('vad-custom', 'form-name')
+}

@@ -441,7 +441,7 @@ export default class Widget {
         let current = userBubbles[userBubbles.length - 1]
         current.innerHTML = `<span class="content-item">${text}</span>`
     }
-    createBubbleWidget()  {
+    createBubbleWidget() {
         const contentWrapper = document.getElementById('widget-main-content')
         contentWrapper.innerHTML += `
         <div class="content-bubble flex row widget-bubble">
@@ -561,6 +561,16 @@ export default class Widget {
         this.widgetEnabled = false
         this.hideSettings()
     }
+
+    customStreaming(streamingMode, target) {
+        console.log('aLLO?')
+        this.beep.play()
+        this.streamingMode = streamingMode
+        this.writingTarget = document.getElementById(target)
+        this.widget.stopStreamingPipeline()
+        this.widget.startStreaming()
+    }
+
     initLintoWeb = async() => {
         // Set chatbot
         this.widget = new Linto(this.lintoWebHost, this.lintoWebToken)
@@ -609,6 +619,8 @@ export default class Widget {
 
         this.widget.startStreamingPipeline()
         this.widgetEnabled = true
+
+        console.log('thiswidget', this.widget)
     }
 }
 

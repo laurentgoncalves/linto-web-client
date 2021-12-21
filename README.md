@@ -168,7 +168,7 @@ To set custom handlers on events, you can write your own functions and call it w
 const myCustomFunction = (event) => {
   console.log('Here is the code')
 }
-window.chatbot = new Widget({
+window.widget = new Widget({
     ...,
     lintoCustomEvents: [{
       flag: 'my_custom_event', 
