@@ -176,11 +176,11 @@ You can try the library localy by running the following command:
 npm run test-widget
 ```
 
-You can change widget parameteres for your tests by updating parameters in the following file: **/tests/widget/index.html**
+You can change widget parameteres for your tests by updating parameters in the following file: **/tests/widget/index.js**
 
 ## Custom handlers
 
-To set custom handlers on events, you can write your own functions and call it when you declare your "new Widget". Here is an example: 
+To set custom handlers on events, you can write your own functions and attach it to the widget events. Here is an example: 
 
 ```javascript
 
