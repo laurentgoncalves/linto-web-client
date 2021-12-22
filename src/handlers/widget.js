@@ -46,7 +46,6 @@ export function hotword(event) {
     }
     if (this.hotwordEnabled) {
         const widgetMultiModal = document.getElementById('widget-mm')
-
         if (widgetMultiModal.classList.contains('hidden')) {
             if (this.widgetMode !== 'minimal-streaming') {
                 this.openWidget()
@@ -54,6 +53,15 @@ export function hotword(event) {
                 this.openMinimalOverlay()
                 this.setMinimalOverlayAnimation('listening')
             }
+        }
+        const widgetFooter = document.getElementById('widget-main-footer')
+        const txtBtn = document.getElementById('widget-msg-btn')
+        if (widgetFooter.classList.contains('mic-disabled')) {
+            txtBtn.classList.remove('txt-enabled')
+            txtBtn.classList.add('txt-disabled')
+            widgetFooter.classList.remove('mic-disabled')
+            widgetFooter.classList.add('mic-enabled')
+
         }
     }
 }
@@ -75,7 +83,6 @@ export async function sayFeedback(event) {
 }
 
 export function streamingChunk(event) {
-
     // VAD
     if (this.streamingMode === 'vad') {
         if (event.detail.behavior.streaming.partial) {
@@ -86,6 +93,8 @@ export function streamingChunk(event) {
             if (this.widgetMode === 'minimal-streaming') {
                 this.setMinimalOverlayMainContent(event.detail.behavior.streaming.partial)
             }
+            this.widgetContentScrollBottom()
+
         }
         if (event.detail.behavior.streaming.text) {
             if (this.debug) {
@@ -154,6 +163,7 @@ export function streamingStart(event) {
     }
     const micBtn = document.getElementById('widget-mic-btn')
     micBtn.classList.add('recording')
+    this.cleanUserBubble()
     this.createUserBubble()
 }
 
@@ -179,6 +189,8 @@ export function streamingFail(event) {
         this.widget.stopStreaming()
         this.widget.stopStreamingPipeline()
     }
+    this.cleanUserBubble()
+
     if (this.widgetMode === 'multi-modal') this.closeWidget()
     if (this.widgetMode === 'minimal-streaming') this.closeMinimalOverlay()
 
@@ -224,9 +236,8 @@ export async function customHandler(e) {
     if (this.debug) {
         console.log('customHandler', e)
     }
-    let widgetBubbles = document.getElementsByClassName('widget-bubble')
-    let current = widgetBubbles[widgetBubbles.length - 1]
-    current.remove()
+    this.cleanWidgetBubble()
+    this.closeMinimalOverlay()
 }
 export function askFeedback(event) {
     if (this.debug) {
@@ -264,12 +275,4 @@ export async function widgetFeedback(e) {
             }
         }
     }
-}
-export function customStreaming(streamingMode, target) {
-    console.log('aLLO?')
-    this.beep.play()
-    this.streamingMode = streamingMode
-    this.writingTarget = document.getElementById(target)
-    this.widget.stopStreamingPipeline()
-    this.widget.startStreaming()
 }

@@ -142,13 +142,32 @@ window.chatbot = new Widget({
     containerId: CONTAINER_BLOCK_HTML_ID,
     lintoWebToken: LINTO_APPLICATION_TOKEN,
     lintoWebHost: LINTO_APPLICATION_HOST,
-    widgetMode: WIDGET_MODE, // Available modes: 'multi-modal','minimal-streaming'
-    hotwordEnabled: 'true', // 'true' or 'false' (string)
-    audioResponse: 'true', // 'true' or 'false' (string)
-    lintoCustomEvents: [{flag: 'string', func: 'function'}]
+    widgetMode: WIDGET_MODE, 
 })
 </script>
 ```
+
+## Parameters
+
+| Parameter | type | values | description |
+| ---------- | ---------- | ---------- | ---------- |
+| **debug** | boolean | true / false | enable or disable console informations when events are triggered |
+| **containerId** | string | "div-wrapper-id" | ID of the block that will contain the widget |`
+| **lintoWebHost** | string | "https://my-host.com" | Url of the host where the application is deployed |
+| **lintoWebToken** | string | "yourToken" | Authorization token to connect the application |
+| **widgetMode** | string | "multi-modal" (default) / "minimal-streamin" | Set the widget mode |
+| **hotwordEnabled** | string | "true" / "false" | Enable or disable hotword detection |
+| **audioResponse** | string | "true" / "false" | Enable or disable linto widget audio response |
+| **streamingStopWord** | string | "stop" | Set stop-word for streaming "infinite" mode |
+| **lintoCustomEvents** | array of objects | {"flag": "event_name": func: function(){} } | Bind custom functions to events |
+| **widgetTemplate** | string | "/path/to/template-file.html" | Set a custom template file |
+| **widgetMicAnimation** | string | "/path/to/animationfile.json" | Set a custom animation file for "widget microphone animation" |
+| **widgetThinkAnimation** | string | "/path/to/animationfile.json" | Set a custom animation file for "widget thinking animation" |
+| **widgetSleepAnimation** | string | "/path/to/animationfile.json" | Set a custom animation file for "widget sleeping animation" |
+| **widgetTalkAnimation** | string | "/path/to/animationfile.json" | Set a custom animation file for "widget talking animation" |
+| **widgetAwakeAnimation** | string | "/path/to/animationfile.json" | Set a custom animation file for "widget awaken animation" |
+| **widgetErrorAnimation** | string | "/path/to/animationfile.json" | Set a custom animation file for "widget error animation" |
+| **widgetValidateAnimation** | string | "/path/to/animationfile.json" | Set a custom animation file for "widget validation animation" |
 
 ## Testing
 

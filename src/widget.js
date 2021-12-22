@@ -12,6 +12,7 @@ const errorJson = require('./assets/json/error.json')
 const validationJson = require('./assets/json/validation.json')
 const audioFile = require('./assets/audio/beep.mp3')
 const htmlTemplate = require('./assets/template/widget-default.html')
+
 export default class Widget {
     constructor(data) {
         /* REQUIRED */
@@ -49,10 +50,10 @@ export default class Widget {
 
         /* STYLE */
         this.widgetTemplate = htmlTemplate
-        this.widgetTitle = 'LinTO chatbot'
-        this.widgetTitleColor = '#fff'
-        this.primaryColor = '#24a7ff'
-        this.secondaryColor = '#003c65'
+            /*this.widgetTitle = 'LinTO chatbot'
+            this.widgetTitleColor = '#fff'
+            this.primaryColor = '#24a7ff'
+            this.secondaryColor = '#003c65'*/
         this.widgetMicAnimation = micJson
         this.widgetThinkAnimation = lintoThinkJson
         this.widgetSleepAnimation = lintoSleepJson
@@ -64,6 +65,7 @@ export default class Widget {
         /* INITIALIZATION */
         this.init(data)
     }
+
 
     async init(data) {
 
@@ -108,41 +110,29 @@ export default class Widget {
             }
             /* STYLE */
             if (!!data.widgetTemplate) {
-                this.widgetTemplate = data.widgetTemplate
-            }
-            if (!!data.widgetTitle) {
-                this.widgetTitle = data.widgetTitle
-            }
-            if (!!data.widgetTitleColor) {
-                this.widgetTitleColor = data.widgetTitleColor
-            }
-            if (!!data.primaryColor) {
-                this.primaryColor = data.primaryColor
-            }
-            if (!!data.secondaryColor) {
-                this.secondaryColor = data.secondaryColor
+                this.widgetTemplate = require(data.widgetTemplate)
             }
             // Animations
             if (!!data.widgetMicAnimation) {
-                this.widgetMicAnimation = data.widgetMicAnimation
+                this.widgetMicAnimation = require(data.widgetMicAnimation)
             }
             if (!!data.widgetThinkAnimation) {
-                this.widgetThinkAnimation = data.widgetThinkAnimation
+                this.widgetThinkAnimation = require(data.widgetThinkAnimation)
             }
             if (!!data.widgetSleepAnimation) {
-                this.widgetSleepAnimation = data.widgetSleepAnimation
+                this.widgetSleepAnimation = require(data.widgetSleepAnimation)
             }
             if (!!data.widgetTalkAnimation) {
-                this.widgetTalkAnimation = data.widgetTalkAnimation
+                this.widgetTalkAnimation = require(data.widgetTalkAnimation)
             }
             if (!!data.widgetAwakeAnimation) {
-                this.widgetAwakeAnimation = data.widgetAwakeAnimation
+                this.widgetAwakeAnimation = require(data.widgetAwakeAnimation)
             }
             if (!!data.widgetErrorAnimation) {
-                this.widgetErrorAnimation = data.widgetErrorAnimation
+                this.widgetErrorAnimation = require(data.widgetErrorAnimation)
             }
             if (!!data.widgetValidateAnimation) {
-                this.widgetValidateAnimation = data.widgetValidateAnimation
+                this.widgetValidateAnimation = require(data.widgetValidateAnimation)
             }
         }
 
@@ -160,9 +150,10 @@ export default class Widget {
             const widgetQuitBtn = document.getElementById('widget-quit-btn')
             const widgetCloseSettings = document.getElementById('widget-settings-cancel')
             const widgetSaveSettings = document.getElementById('widget-settings-save')
-
             const settingsHotword = document.getElementById('widget-settings-hotword')
             const settingsAudioResp = document.getElementById('widget-settings-say-response')
+            const widgetShowMinimal = document.getElementById('widget-show-minimal')
+
 
             if (this.hotwordEnabled === 'false') {
                 settingsHotword.checked = false
@@ -182,7 +173,9 @@ export default class Widget {
             }
             widgetShowBtn.onclick = () => {
                 if (this.widgetMode === 'minimal-streaming' && this.widgetEnabled) {
-                    console.log('REC MINIMAL')
+                    this.openMinimalOverlay()
+                    this.setMinimalOverlayAnimation('listening')
+                    this.widget.startStreaming()
                 } else {
                     this.openWidget()
                 }
@@ -203,7 +196,7 @@ export default class Widget {
 
             // Collapse widget 
             widgetCollapseBtn.onclick = () => {
-                this.collapseWidget()
+                this.closeWidget()
             }
 
             // Show / Hide widget settings
@@ -237,6 +230,9 @@ export default class Widget {
             const inputContent = document.getElementById('chabtot-msg-input')
             const txtBtn = document.getElementById('widget-msg-btn')
             const micBtn = document.getElementById('widget-mic-btn')
+            if (this.widgetMode === 'minimal-streaming') {
+                widgetFooter.classList.add('hidden')
+            }
             micBtn.onclick = async() => {
                 if (widgetFooter.classList.contains('mic-disabled')) {
                     txtBtn.classList.remove('txt-enabled')
@@ -247,11 +243,7 @@ export default class Widget {
                 }
                 if (micBtn.classList.contains('recording')) {
                     this.widget.stopStreaming()
-                    let userBubbles = document.getElementsByClassName('user-bubble')
-                    let current = userBubbles[userBubbles.length - 1]
-                    if (current.innerHTML.indexOf('loading') >= 0) {
-                        current.remove()
-                    }
+                    this.cleanUserBubble()
                 } else {
                     this.widget.startStreaming()
                 }
@@ -273,6 +265,7 @@ export default class Widget {
                     this.setUserBubbleContent(text)
                     this.widget.sendCommandText(text)
                     this.createBubbleWidget()
+                    inputContent.value = ''
                 }
             }
 
@@ -282,7 +275,11 @@ export default class Widget {
                 this.closeMinimalOverlay()
                 this.widget.stopStreaming()
                 this.widget.stopSpeech()
+            }
 
+            // MINIMAL SHOW WIDGET
+            widgetShowMinimal.onclick = () => {
+                this.openWidget()
             }
         }
     }
@@ -331,7 +328,7 @@ export default class Widget {
         const widgetInitFrame = document.getElementById('widget-init-wrapper')
         const widgetMain = document.getElementById('widget-mm-main')
         const widgetShowBtn = document.getElementById('widget-show-btn')
-
+        const widgetShowMinimal = document.getElementById('widget-show-minimal')
         widgetInitFrame.classList.add('hidden')
         this.closeWidget()
         widgetMain.classList.remove('hidden')
@@ -340,12 +337,24 @@ export default class Widget {
             widgetShowBtn.classList.add('awake')
             this.setWidgetRightCornerAnimation('awake')
         })
+
+        if (this.widgetMode === 'minimal-streaming') {
+            setTimeout(() => {
+                widgetShowMinimal.classList.remove('hidden')
+                widgetShowMinimal.classList.add('visible')
+            }, 2000)
+        }
     }
 
     // WIDGET MAIN 
     openWidget() {
         const widgetShowBtn = document.getElementById('widget-show-btn')
         const widgetMultiModal = document.getElementById('widget-mm')
+        const widgetShowMinimal = document.getElementById('widget-show-minimal')
+        if (this.widgetMode === 'minimal-streaming') {
+            widgetShowMinimal.classList.remove('visible')
+            widgetShowMinimal.classList.add('hidden')
+        }
         widgetShowBtn.classList.remove('visible')
         widgetShowBtn.classList.add('hidden')
         widgetMultiModal.classList.remove('hidden')
@@ -354,9 +363,13 @@ export default class Widget {
     closeWidget() {
         const widgetShowBtn = document.getElementById('widget-show-btn')
         const widgetMultiModal = document.getElementById('widget-mm')
+        const widgetShowMinimal = document.getElementById('widget-show-minimal')
+        if (this.widgetMode === 'minimal-streaming') {
+            widgetShowMinimal.classList.add('visible')
+            widgetShowMinimal.classList.remove('hidden')
+        }
         widgetMultiModal.classList.add('hidden')
         widgetMultiModal.classList.remove('visible')
-
         widgetShowBtn.classList.add('visible')
         widgetShowBtn.classList.remove('hidden')
         if (widgetShowBtn.classList.contains('sleeping')) {
@@ -365,18 +378,16 @@ export default class Widget {
             this.setWidgetRightCornerAnimation('awake')
         }
     }
-    collapseWidget() {
-        const widgetShowBtn = document.getElementById('widget-show-btn')
-        const widgetMultiModal = document.getElementById('widget-mm')
-        widgetShowBtn.classList.remove('hidden')
-        widgetShowBtn.classList.add('visible')
-        widgetMultiModal.classList.add('hidden')
-        widgetMultiModal.classList.remove('visible')
-    }
+
     stopWidget() {
         const widgetInitFrame = document.getElementById('widget-init-wrapper')
         const widgetMain = document.getElementById('widget-mm-main')
         const widgetShowBtn = document.getElementById('widget-show-btn')
+        const widgetShowMinimal = document.getElementById('widget-show-minimal')
+        if (this.widgetMode === 'minimal-streaming') {
+            widgetShowMinimal.classList.remove('visible')
+            widgetShowMinimal.classList.add('hidden')
+        }
         widgetInitFrame.classList.remove('hidden')
         widgetMain.classList.add('hidden')
         if (widgetShowBtn.classList.contains('awake')) {
@@ -429,6 +440,15 @@ export default class Widget {
     }
 
     // WIDGET CONTENT BUBBLES
+    cleanUserBubble() {
+        let userBubbles = document.getElementsByClassName('user-bubble')
+        if (userBubbles.length > 0) {
+            let current = userBubbles[userBubbles.length - 1]
+            if (current.innerHTML.indexOf('loading') >= 0) {
+                current.remove()
+            }
+        }
+    }
     createUserBubble() {
         const contentWrapper = document.getElementById('widget-main-content')
         contentWrapper.innerHTML += `
@@ -453,11 +473,19 @@ export default class Widget {
         let current = widgetBubbles[widgetBubbles.length - 1]
         current.innerHTML = `<span class="content-item">${text}</span>`
     }
+    cleanWidgetBubble() {
+        let widgetBubbles = document.getElementsByClassName('widget-bubble')
+        if (widgetBubbles.length > 0) {
+            let current = widgetBubbles[widgetBubbles.length - 1]
+            if (current.innerHTML.indexOf('loading') >= 0) {
+                current.remove()
+            }
+        }
+    }
 
     // Update feedback window data content (links, img...)
     setWidgetFeedbackData(data) {
         let jhtml = '<div class="content-bubble flex row widget">'
-
         for (let item of data) {
             if (item.eventType === 'choice') {
                 jhtml += `<button class="widget-content-link">${item.text}</button>`
@@ -481,6 +509,11 @@ export default class Widget {
                 this.widget.sendWidgetText(value)
             }
         }
+        this.widgetContentScrollBottom()
+
+    }
+    widgetContentScrollBottom() {
+        const contentWrapper = document.getElementById('widget-main-content')
         contentWrapper.scrollTo({
             top: contentWrapper.offsetHeight,
             left: 0,
@@ -522,11 +555,13 @@ export default class Widget {
             }
         }
     }
-
     openMinimalOverlay() {
         const widgetShowBtn = document.getElementById('widget-show-btn')
         const minOverlay = document.getElementById('widget-minimal-overlay')
+        const widgetShowMinimal = document.getElementById('widget-show-minimal')
         this.closeWidget()
+        widgetShowMinimal.classList.remove('visible')
+        widgetShowMinimal.classList.add('hidden')
         widgetShowBtn.classList.remove('visible')
         widgetShowBtn.classList.add('hidden')
         minOverlay.classList.remove('hidden')
@@ -535,10 +570,15 @@ export default class Widget {
     closeMinimalOverlay() {
         const widgetShowBtn = document.getElementById('widget-show-btn')
         const minOverlay = document.getElementById('widget-minimal-overlay')
+        const widgetShowMinimal = document.getElementById('widget-show-minimal')
+        widgetShowMinimal.classList.add('visible')
+        widgetShowMinimal.classList.remove('hidden')
         widgetShowBtn.classList.add('visible')
         widgetShowBtn.classList.remove('hidden')
         minOverlay.classList.add('hidden')
         minOverlay.classList.remove('visible')
+        this.setMinimalOverlayAnimation('')
+        this.setMinimalOverlaySecondaryContent('')
     }
     setMinimalOverlayMainContent(txt) {
         const mainContent = document.getElementById('widget-ms-content-current')
@@ -563,7 +603,6 @@ export default class Widget {
     }
 
     customStreaming(streamingMode, target) {
-        console.log('aLLO?')
         this.beep.play()
         this.streamingMode = streamingMode
         this.writingTarget = document.getElementById(target)
@@ -619,8 +658,6 @@ export default class Widget {
 
         this.widget.startStreamingPipeline()
         this.widgetEnabled = true
-
-        console.log('thiswidget', this.widget)
     }
 }
 
