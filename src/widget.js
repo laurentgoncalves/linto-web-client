@@ -11,8 +11,6 @@ const lintoAwakeJson = require('./assets/json/linto-awake.json')
 const errorJson = require('./assets/json/error.json')
 const validationJson = require('./assets/json/validation.json')
 const audioFile = require('./assets/audio/beep.mp3')
-
-//const htmlTemplate = require('./assets/template/widget-default.html')
 const scss = require('./assets/scss/widget.scss')
 
 export default class Widget {
@@ -87,6 +85,7 @@ export default class Widget {
                 this.containerId = data.containerId
                 this.widgetContainer = document.getElementById(this.containerId)
             }
+
             // Custom events
             if (!!data.lintoCustomEvents) {
                 this.lintoCustomEvents = data.lintoCustomEvents
@@ -219,7 +218,7 @@ export default class Widget {
             <div id="widget-minimal-overlay" class="flex row hidden">
                 <button id="widget-ms-close"></button>
                 <div class="widget-ms-container flex1 flex row">
-                    <div id="widget-ms-animation" class="widget-animation flex col"></div>
+                    <div id="widget-ms-animation" class="widget-animation flex"></div>
                     <div class="widget-ms-content flex col flex1">
                         <div id="widget-ms-content-previous" class="widget-ms-content-previous"></div>
                         <div id="widget-ms-content-current" class="widget-ms-content-current flex col"></div>
@@ -239,14 +238,6 @@ export default class Widget {
             const settingsHotword = document.getElementById('widget-settings-hotword')
             const settingsAudioResp = document.getElementById('widget-settings-say-response')
             const widgetShowMinimal = document.getElementById('widget-show-minimal')
-
-
-            if (this.hotwordEnabled === 'false') {
-                settingsHotword.checked = false
-            }
-            if (this.audioResponse === 'false') {
-                settingsAudioResp.checked = false
-            }
 
             // Audio hotword sound
             this.beep = new Audio(audioFile)
@@ -309,6 +300,7 @@ export default class Widget {
             // Save Settings
             widgetSaveSettings.onclick = () => {
                 this.updateWidgetSettings()
+                this.hideSettings()
             }
 
             // Widget MIC BTN
@@ -367,6 +359,23 @@ export default class Widget {
             widgetShowMinimal.onclick = () => {
                 this.openWidget()
             }
+
+            // Local Storage
+            if (localStorage.getItem('lintoWidget') !== null) {
+                const storage = JSON.parse(localStorage.getItem('lintoWidget'))
+                if (!!storage.hotwordEnabled) {
+                    this.hotwordEnabled = storage.hotwordEnabled
+                }
+                if (!!storage.audioRespEnabled) {
+                    this.audioResponse = storage.audioRespEnabled
+                }
+                if (storage.widgetEnabled === true || storage.widgetEnabled === 'true') {
+                    await this.initLintoWeb()
+                    this.startWidget()
+                }
+            }
+            this.hotwordEnabled === 'false' ? settingsHotword.checked = false : settingsHotword.checked = true
+            this.audioResponse === 'false' ? settingsAudioResp.checked = false : settingsAudioResp.checked = true
         }
     }
 
@@ -423,7 +432,6 @@ export default class Widget {
             widgetShowBtn.classList.add('awake')
             this.setWidgetRightCornerAnimation('awake')
         })
-
         if (this.widgetMode === 'minimal-streaming') {
             setTimeout(() => {
                 widgetShowMinimal.classList.remove('hidden')
@@ -523,6 +531,12 @@ export default class Widget {
         } else if (audioRespCheckbox.checked && this.audioResponse === 'false') {
             this.audioResponse = 'true'
         }
+        let widgetStatus = {
+            widgetEnabled: this.widgetEnabled,
+            hotwordEnabled: this.hotwordEnabled,
+            audioRespEnabled: this.audioResponse
+        }
+        localStorage.setItem('lintoWidget', JSON.stringify(widgetStatus))
     }
 
     // WIDGET CONTENT BUBBLES
@@ -665,6 +679,7 @@ export default class Widget {
         minOverlay.classList.remove('visible')
         this.setMinimalOverlayAnimation('')
         this.setMinimalOverlaySecondaryContent('')
+        this.setMinimalOverlayMainContent('')
     }
     setMinimalOverlayMainContent(txt) {
         const mainContent = document.getElementById('widget-ms-content-current')
@@ -686,6 +701,7 @@ export default class Widget {
         await this.widget.logout
         this.widgetEnabled = false
         this.hideSettings()
+        localStorage.clear()
     }
 
     customStreaming(streamingMode, target) {
@@ -744,6 +760,12 @@ export default class Widget {
 
         this.widget.startStreamingPipeline()
         this.widgetEnabled = true
+        let widgetStatus = {
+            widgetEnabled: this.widgetEnabled,
+            hotwordEnabled: this.hotwordEnabled,
+            audioRespEnabled: this.audioResponse
+        }
+        localStorage.setItem('lintoWidget', JSON.stringify(widgetStatus))
     }
 }
 

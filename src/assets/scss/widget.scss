@@ -521,8 +521,7 @@ $redDark: #fd3b3b;
         justify-content: center;
         z-index: 900;
         &.visible {
-            height: 80px;
-            padding: 40px 0;
+            padding: 20px 0;
             @include transition(all 0.3s ease);
             overflow: visible;
         }
