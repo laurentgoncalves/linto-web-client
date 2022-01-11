@@ -23,8 +23,10 @@
     "scripts": {
         "test": "parcel tests/index.html --out-dir dev-build --log-level 4 --no-cache",
         "build": "parcel build src/linto.js --log-level 4 --no-cache --no-source-maps --detailed-report --out-file linto.min.js",
-        "build-widget": "parcel build src/widget.js --log-level 4 --no-cache --no-source-maps --detailed-report --out-file linto.widget.min.js",
+        "widget-css": "sass ./src/assets/scss/widget.scss ./dist/widget.min.css --style compressed --no-source-map",
+        "build-widget": "npm run widget-css && parcel build src/widget.js --log-level 4 --no-cache --no-source-maps --detailed-report --out-file linto.widget.min.js",
         "test-widget": "parcel tests/widget/index.html --out-dir dev-build --log-level 4 --no-cache"
+
     },
     "repository": {
         "type": "git",
@@ -44,7 +46,7 @@
         "npm": "^6.14.8",
         "parcel-bundler": "^1.12.5",
         "re-tree": "^0.1.7",
-        "sass": "^1.44.0",
+        "sass": "^1.46.0",
         "ua-device-detector": "^1.1.8"
     },
     "browserslist": [

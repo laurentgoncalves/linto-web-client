@@ -10,7 +10,7 @@ $redDark: #fd3b3b;
 #widget-mm-wrapper {
     display: flex;
     flex-direction: column;
-    position: absolute;
+    position: fixed;
     bottom: 20px;
     right: 20px;
     z-index: 10;
