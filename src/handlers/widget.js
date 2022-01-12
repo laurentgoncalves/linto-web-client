@@ -247,6 +247,9 @@ export function askFeedback(event) {
 export function setHandler(label, func) {
     this.widget.addEventListener(label, func)
 }
+
+
+
 export async function widgetFeedback(e) {
     if (this.debug) {
         console.log('chatbot feedback', e)
@@ -266,12 +269,34 @@ export async function widgetFeedback(e) {
         }
 
         this.setWidgetFeedbackData(data)
+
+        let isLink = this.stringIsHTML(answer)
         if (this.audioResponse === 'true') {
-            let sayResp = await this.widget.say('fr-FR', answer)
-            if (this.widgetMode === 'minimal-streaming') {
-                if (!!sayResp) {
-                    this.closeMinimalOverlay()
+            if (!isLink) {
+                let sayResp = await this.widget.say('fr-FR', answer)
+                console.log('0/')
+                if (this.widgetMode === 'minimal-streaming') {
+                    console.log('1/')
+                    if (!!sayResp) {
+                        console.log('unk/')
+                        this.closeMinimalOverlay()
+                    } else {
+                        setTimeout(() => {
+                            console.log('2/')
+
+                            this.closeMinimalOverlay()
+                        }, 4000)
+                    }
                 }
+            }
+        } else {
+            console.log('a/')
+            if (this.widgetMode === 'minimal-streaming') {
+                console.log('B/')
+
+                setTimeout(() => {
+                    this.closeMinimalOverlay()
+                }, 4000)
             }
         }
     }

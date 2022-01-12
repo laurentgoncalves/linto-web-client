@@ -27,7 +27,7 @@ export default class Widget {
         this.lintoWebHost = ''
         this.lintoWebToken = ''
 
-        /* GLOBAL */
+        // GLOBAL 
         this.widget = null
         this.widgetEnabled = false
         this.widgetMode = 'mutli-modal'
@@ -35,29 +35,25 @@ export default class Widget {
         this.debug = false
         this.streamingStopWord = 'stop'
 
-        /* STATES */
+        // STATES 
         this.streamingMode = 'vad'
         this.writingTarget = null
         this.streamingContent = ''
 
-        /* SETTINGS */
+        // SETTINGS 
         this.hotwordEnabled = 'true'
         this.audioResponse = 'true'
 
-        /* ANIMATIONS */
-        this.widgetRightCornerAnimation = null
-        this.widgetminimalOverlayAnimation = null
-
-        /* ELEMENTS */
+        // ELEMENTS 
         this.widgetFeedbackContent = []
         this.beep = null
 
-        /* CUSTOM EVENTS */
+        // CUSTOM EVENTS 
         this.lintoCustomEvents = []
 
-        /* STYLE */
-        this.widgetTemplate = ""
-
+        // ANIMATIONS 
+        this.widgetRightCornerAnimation = null
+        this.widgetminimalOverlayAnimation = null
         this.widgetMicAnimation = micJson
         this.widgetThinkAnimation = lintoThinkJson
         this.widgetSleepAnimation = lintoSleepJson
@@ -72,8 +68,7 @@ export default class Widget {
 
 
     async init(data) {
-        console.log(cssFile)
-            // Set custom parameters
+        // Set custom parameters
         if (!!data) {
             // Debug 
             if (!!data.debug) {
@@ -92,7 +87,6 @@ export default class Widget {
                 this.containerId = data.containerId
                 this.widgetContainer = document.getElementById(this.containerId)
             }
-
             // Custom events
             if (!!data.lintoCustomEvents) {
                 this.lintoCustomEvents = data.lintoCustomEvents
@@ -105,17 +99,12 @@ export default class Widget {
             if (!!data.streamingStopWord) {
                 this.streamingStopWord = data.streamingStopWord
             }
-
             // Hotword enabled 
             if (!!data.hotwordEnabled) {
                 this.hotwordEnabled = data.hotwordEnabled
             }
             if (!!data.audioResponse) {
                 this.audioResponse = data.audioResponse
-            }
-            /* STYLE */
-            if (!!data.widgetTemplate) {
-                this.widgetTemplate = require(data.widgetTemplate)
             }
             // Animations
             if (!!data.widgetMicAnimation) {
@@ -354,6 +343,22 @@ export default class Widget {
                 }
             }
 
+            document.addEventListener('keypress', (e) => {
+                if (e.key == 13 || e.key === 'Enter') {
+                    e.preventDefault()
+                    if (inputContent === document.activeElement) {
+                        this.createUserBubble()
+                        const text = inputContent.value
+                        this.setUserBubbleContent(text)
+                        this.widget.sendCommandText(text)
+                        this.createBubbleWidget()
+                        inputContent.value = ''
+                    }
+                }
+            })
+
+
+
             // MINIMAL OVERLAY
             const closeMinimalOverlayBtn = document.getElementById('widget-ms-close')
             closeMinimalOverlayBtn.onclick = () => {
@@ -549,10 +554,9 @@ export default class Widget {
     // WIDGET CONTENT BUBBLES
     cleanUserBubble() {
         let userBubbles = document.getElementsByClassName('user-bubble')
-        if (userBubbles.length > 0) {
-            let current = userBubbles[userBubbles.length - 1]
-            if (current.innerHTML.indexOf('loading') >= 0) {
-                current.remove()
+        for (let bubble of userBubbles) {
+            if (bubble.innerHTML.indexOf('loading') >= 0) {
+                bubble.remove()
             }
         }
     }
@@ -578,16 +582,23 @@ export default class Widget {
     setWidgetBubbleContent(text) {
         let widgetBubbles = document.getElementsByClassName('widget-bubble')
         let current = widgetBubbles[widgetBubbles.length - 1]
-        current.innerHTML = `<span class="content-item">${text}</span>`
+        if (this.stringIsHTML(text)) {
+            current.innerHTML = text
+        } else {
+            current.innerHTML = `<span class="content-item">${text}</span>`
+        }
     }
     cleanWidgetBubble() {
         let widgetBubbles = document.getElementsByClassName('widget-bubble')
-        if (widgetBubbles.length > 0) {
-            let current = widgetBubbles[widgetBubbles.length - 1]
-            if (current.innerHTML.indexOf('loading') >= 0) {
-                current.remove()
+        for (let bubble of widgetBubbles) {
+            if (bubble.innerHTML.indexOf('loading') >= 0) {
+                bubble.remove()
             }
         }
+    }
+    stringIsHTML(str) {
+        const regex = /[<>]/
+        return regex.test(str)
     }
 
     // Update feedback window data content (links, img...)
@@ -620,9 +631,11 @@ export default class Widget {
 
     }
     widgetContentScrollBottom() {
+
         const contentWrapper = document.getElementById('widget-main-content')
+
         contentWrapper.scrollTo({
-            top: contentWrapper.offsetHeight,
+            top: contentWrapper.scrollHeight,
             left: 0,
             behavior: 'smooth'
         })
@@ -697,6 +710,7 @@ export default class Widget {
         secContent.innerHTML = txt
     }
     say = async(text) => {
+        this.widget.stopSpeech()
         const toSay = await this.widget.say('fr-FR', text)
         return toSay
     }

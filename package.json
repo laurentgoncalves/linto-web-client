@@ -25,7 +25,7 @@
         "build": "parcel build src/linto.js --log-level 4 --no-cache --no-source-maps --detailed-report --out-file linto.min.js",
         "widget-css": "sass ./src/assets/scss/widget.scss ./dist/widget.min.css --style compressed --no-source-map",
         "build-widget": "npm run widget-css && parcel build src/widget.js --log-level 4 --no-cache --no-source-maps --detailed-report --out-file linto.widget.min.js",
-        "test-widget": "parcel tests/widget/index.html --out-dir dev-build --log-level 4 --no-cache"
+        "test-widget": "npm run widget-css && parcel tests/widget/index.html --out-dir dev-build --log-level 4 --no-cache"
 
     },
     "repository": {
