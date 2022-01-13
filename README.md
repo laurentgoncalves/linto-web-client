@@ -157,10 +157,10 @@ window.chatbot = new Widget({
 | **lintoWebToken** | string | "yourToken" | Authorization token to connect the application |
 | **widgetMode** | string | "multi-modal" (default) / "minimal-streamin" | Set the widget mode |
 | **hotwordEnabled** | string | "true" / "false" | Enable or disable hotword detection |
+| **hotwordValue** | string | "linto" | Value of the hotword. Change it if you use an other hotword model than "linto" |
 | **audioResponse** | string | "true" / "false" | Enable or disable linto widget audio response |
 | **streamingStopWord** | string | "stop" | Set stop-word for streaming "infinite" mode |
 | **lintoCustomEvents** | array of objects | {"flag": "event_name": func: function(){} } | Bind custom functions to events |
-| **widgetTemplate** | string | "/path/to/template-file.html" | Set a custom template file |
 | **widgetMicAnimation** | string | "/path/to/animationfile.json" | Set a custom animation file for "widget microphone animation" |
 | **widgetThinkAnimation** | string | "/path/to/animationfile.json" | Set a custom animation file for "widget thinking animation" |
 | **widgetSleepAnimation** | string | "/path/to/animationfile.json" | Set a custom animation file for "widget sleeping animation" |
