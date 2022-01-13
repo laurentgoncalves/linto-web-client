@@ -168,6 +168,11 @@ window.chatbot = new Widget({
 | **widgetAwakeAnimation** | string | "/path/to/animationfile.json" | Set a custom animation file for "widget awaken animation" |
 | **widgetErrorAnimation** | string | "/path/to/animationfile.json" | Set a custom animation file for "widget error animation" |
 | **widgetValidateAnimation** | string | "/path/to/animationfile.json" | Set a custom animation file for "widget validation animation" |
+| **widgetTitle** | string | "LinTO Widget" | Widget Title value |
+
+| **widgetTitle** | string | "LinTO Widget" | Widget Title value |
+| **cssPrimarycolor** | string | "#59bbeb" | Value of the widget primary color (default = "#59bbeb") |
+| **cssSecondaryColor** | string | "#055e89" | Value of the widget secondary color (default = "#055e89") |
 
 ## Testing
 

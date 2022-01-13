@@ -19,9 +19,6 @@ const htmlTemplate = fs.readFileSync('./src/assets/template/widget-default.html'
 
 // Inserting CSS to DOM
 const cssFile = fs.readFileSync('./dist/widget.min.css', 'utf8');
-let style = document.createElement('style');
-style.textContent = cssFile;
-document.getElementsByTagName('head')[0].appendChild(style);
 
 export default class Widget {
     constructor(data) {
@@ -65,6 +62,9 @@ export default class Widget {
         this.widgetAwakeAnimation = lintoAwakeJson
         this.widgetErrorAnimation = errorJson
         this.widgetValidateAnimation = validationJson
+
+        // CUSTOMIZATION
+        this.widgetTitle = 'Linto Widget'
 
         /* INITIALIZATION */
         this.init(data)
@@ -135,12 +135,29 @@ export default class Widget {
             if (!!data.widgetValidateAnimation) {
                 this.widgetValidateAnimation = require(data.widgetValidateAnimation)
             }
+            // CUSTO / CSS
+            if (!!data.widgetTitle) {
+                this.widgetTitle = data.widgetTitle
+            }
+            let style = document.createElement('style');
+            let cssRewrite = cssFile
+            if (!!data.cssPrimarycolor) {
+                cssRewrite = cssRewrite.replace(/#59bbeb/g, data.cssPrimarycolor)
+            }
+            if (!!data.cssSecondaryColor) {
+                cssRewrite = cssRewrite.replace(/#055e89/g, data.cssSecondaryColor)
+            }
+            style.textContent = cssRewrite;
+            document.getElementsByTagName('head')[0].appendChild(style);
         }
 
         // First initialisation
         if (!this.widgetEnabled) {
             // HTML (right corner)
             this.widgetContainer.innerHTML = htmlTemplate
+            setTimeout(() => {
+                this.updateStyle(data)
+            }, 400)
 
             /* Widget elements */
             const widgetStartBtn = document.getElementById('widget-init-btn-enable');
@@ -228,7 +245,6 @@ export default class Widget {
             }
 
             // Widget MIC BTN
-
             micBtn.onclick = async() => {
                 if (widgetFooter.classList.contains('mic-disabled')) {
                     txtBtn.classList.remove('txt-enabled')
@@ -325,6 +341,12 @@ export default class Widget {
             this.hotwordEnabled === 'false' ? settingsHotword.checked = false : settingsHotword.checked = true
             this.audioResponse === 'false' ? settingsAudioResp.checked = false : settingsAudioResp.checked = true
         }
+    }
+    updateStyle(data) {
+        const widgetTitleMain = document.getElementsByClassName('widget-mm-title')[0]
+        const widgetTitleInit = document.getElementsByClassName('widget-init-title')[0]
+        widgetTitleMain.innerHTML = this.widgetTitle
+        widgetTitleInit.innerHTML = this.widgetTitle
     }
 
     // ANIMATION RIGHT CORNER
