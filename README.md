@@ -137,7 +137,7 @@ Import **linto.widget.min.js** file to your web page. Once it's done, you can cr
 ```html
 <script type="text/javascript" src="YOUR_PATH/linto.widget.min.js"></script>
 <script type="text/javascript">
-window.chatbot = new Widget({
+window.widget = new Widget({
     debug: false,
     containerId: CONTAINER_BLOCK_HTML_ID,
     lintoWebToken: LINTO_APPLICATION_TOKEN,
