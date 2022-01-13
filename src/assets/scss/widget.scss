@@ -295,8 +295,8 @@ $redDark: #fd3b3b;
             }
             .widget-content-img {
                 display: inline-block;
-                height: 40px;
-                width: auto;
+                height: auto;
+                max-width: 80%;
             }
             &.widget-bubble {
                 justify-content: flex-start;
@@ -307,6 +307,7 @@ $redDark: #fd3b3b;
                     0);
                     background-color: $blueLight;
                     color: #fff;
+                    word-break: break-word;
                 }
             }
             &.user-bubble {
@@ -325,7 +326,7 @@ $redDark: #fd3b3b;
     /* widget FOOTER */
     #widget-main-footer {
         height: auto;
-        padding: 20px 15px;
+        padding: 20px 15px 10px 15px;
         background: $blueLight;
         align-items: center;
         justify-content: center;
@@ -376,7 +377,7 @@ $redDark: #fd3b3b;
             background-color: #fff;
             position: absolute;
             top: 50%;
-            margin-top: -15px;
+            margin-top: -10px;
             .icon {
                 display: inline-block;
                 width: 20px;
@@ -400,6 +401,7 @@ $redDark: #fd3b3b;
             margin-left: 10px;
             @include transitionEase();
             outline: none;
+            font-size: 14px;
         }
         &.mic-enabled {
             padding: 15px;
@@ -433,11 +435,23 @@ $redDark: #fd3b3b;
             }
             #chabtot-msg-input {
                 display: inline-block;
-                height: 30px;
-                line-height: 30px;
-                padding: 0 30px 0 10px;
+                height: auto;
+                max-height: 150px;
+                min-height: 20px;
+                line-height: 20px;
+                padding: 5px 30px 5px 10px;
+                overflow: auto;
             }
         }
+    }
+    /* widget msg error */
+    #chatbot-msg-error {
+        padding: 0 10px 10px 10px;
+        background-color: $blueLight;
+        color: $redDark;
+        z-index: 2;
+        justify-content: center;
+        font-size: 14px;
     }
     /* widget Settings */
     #widget-settings {

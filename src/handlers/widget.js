@@ -269,31 +269,22 @@ export async function widgetFeedback(e) {
         }
 
         this.setWidgetFeedbackData(data)
-
         let isLink = this.stringIsHTML(answer)
         if (this.audioResponse === 'true') {
             if (!isLink) {
                 let sayResp = await this.widget.say('fr-FR', answer)
-                console.log('0/')
                 if (this.widgetMode === 'minimal-streaming') {
-                    console.log('1/')
                     if (!!sayResp) {
-                        console.log('unk/')
                         this.closeMinimalOverlay()
                     } else {
                         setTimeout(() => {
-                            console.log('2/')
-
                             this.closeMinimalOverlay()
                         }, 4000)
                     }
                 }
             }
         } else {
-            console.log('a/')
             if (this.widgetMode === 'minimal-streaming') {
-                console.log('B/')
-
                 setTimeout(() => {
                     this.closeMinimalOverlay()
                 }, 4000)
