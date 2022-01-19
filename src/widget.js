@@ -20,7 +20,7 @@ const htmlTemplate = fs.readFileSync('./src/assets/template/widget-default.html'
 // Inserting CSS to DOM
 const cssFile = fs.readFileSync('./dist/widget.min.css', 'utf8');
 
-export default class Widget {
+export default class LintoUI {
     constructor(data) {
         /* REQUIRED */
         this.containerId = null
@@ -28,7 +28,7 @@ export default class Widget {
         this.lintoWebToken = ''
 
         // GLOBAL 
-        this.widget = null
+        this.linto = null
         this.widgetEnabled = false
         this.widgetMode = 'mutli-modal'
         this.widgetContainer = null
@@ -193,7 +193,7 @@ export default class Widget {
                 if (this.widgetMode === 'minimal-streaming' && this.widgetEnabled) {
                     this.openMinimalOverlay()
                     this.setMinimalOverlayAnimation('listening')
-                    this.widget.startStreaming()
+                    this.linto.startStreaming()
                 } else {
                     this.openWidget()
                 }
@@ -254,10 +254,10 @@ export default class Widget {
 
                 }
                 if (micBtn.classList.contains('recording')) {
-                    this.widget.stopStreaming()
+                    this.linto.stopStreaming()
                     this.cleanUserBubble()
                 } else {
-                    this.widget.startStreaming()
+                    this.linto.startStreaming()
                 }
             }
 
@@ -280,7 +280,7 @@ export default class Widget {
                         this.createUserBubble()
 
                         this.setUserBubbleContent(text)
-                        this.widget.sendCommandText(text)
+                        this.linto.sendCommandText(text)
                         this.createBubbleWidget()
                         inputContent.innerHTML = ''
                     }
@@ -298,7 +298,7 @@ export default class Widget {
                         } else {
                             this.createUserBubble()
                             this.setUserBubbleContent(text)
-                            this.widget.sendCommandText(text)
+                            this.linto.sendCommandText(text)
                             this.createBubbleWidget()
                             inputContent.innerHTML = ''
                         }
@@ -315,8 +315,8 @@ export default class Widget {
             // MINIMAL OVERLAY
             closeMinimalOverlayBtn.onclick = () => {
                 this.closeMinimalOverlay()
-                this.widget.stopStreaming()
-                this.widget.stopSpeech()
+                this.linto.stopStreaming()
+                this.linto.stopSpeech()
             }
 
             // MINIMAL SHOW WIDGET
@@ -485,16 +485,16 @@ export default class Widget {
         const audioRespCheckbox = document.getElementById('widget-settings-say-response')
         if (!hotwordCheckbox.checked && this.hotwordEnabled === 'true') {
             this.hotwordEnabled = 'false'
-            this.widget.stopStreamingPipeline()
-            this.widget.stopAudioAcquisition()
-            this.widget.startAudioAcquisition(false, this.hotwordValue, 0.99)
-            this.widget.startStreamingPipeline()
+            this.linto.stopStreamingPipeline()
+            this.linto.stopAudioAcquisition()
+            this.linto.startAudioAcquisition(false, this.hotwordValue, 0.99)
+            this.linto.startStreamingPipeline()
         } else if (hotwordCheckbox.checked && this.hotwordEnabled === 'false') {
             this.hotwordEnabled = 'true'
-            this.widget.stopStreamingPipeline()
-            this.widget.stopAudioAcquisition()
-            this.widget.startAudioAcquisition(true, this.hotwordValue, 0.99)
-            this.widget.startStreamingPipeline()
+            this.linto.stopStreamingPipeline()
+            this.linto.stopAudioAcquisition()
+            this.linto.startAudioAcquisition(true, this.hotwordValue, 0.99)
+            this.linto.startStreamingPipeline()
         }
         if (!audioRespCheckbox.checked && this.audioResponse === 'true') {
             this.audioResponse = 'false'
@@ -529,6 +529,7 @@ export default class Widget {
         let userBubbles = document.getElementsByClassName('user-bubble')
         let current = userBubbles[userBubbles.length - 1]
         current.innerHTML = `<span class="content-item">${text}</span>`
+        this.widgetContentScrollBottom()
     }
     createBubbleWidget() {
         const contentWrapper = document.getElementById('widget-main-content')
@@ -545,6 +546,7 @@ export default class Widget {
         } else {
             current.innerHTML = `<span class="content-item">${text}</span>`
         }
+        this.widgetContentScrollBottom()
     }
     cleanWidgetBubble() {
         let widgetBubbles = document.getElementsByClassName('widget-bubble')
@@ -587,7 +589,7 @@ export default class Widget {
                 this.createUserBubble()
                 this.setUserBubbleContent(value)
                 this.createBubbleWidget()
-                this.widget.sendWidgetText(value)
+                this.linto.sendWidgetText(value)
             }
         }
         this.widgetContentScrollBottom()
@@ -673,16 +675,16 @@ export default class Widget {
         secContent.innerHTML = txt
     }
     say = async(text) => {
-        this.widget.stopSpeech()
-        const toSay = await this.widget.say('fr-FR', text)
+        this.lintostopSpeech()
+        const toSay = await this.linto.say('fr-FR', text)
         return toSay
     }
     async stopAll() {
-        this.widget.stopStreaming()
-        this.widget.stopStreamingPipeline()
-        this.widget.stopAudioAcquisition()
-        this.widget.stopSpeech()
-        await this.widget.logout
+        this.linto.stopStreaming()
+        this.linto.stopStreamingPipeline()
+        this.linto.stopAudioAcquisition()
+        this.linto.stopSpeech()
+        await this.linto.logout
         this.widgetEnabled = false
         this.hideSettings()
         localStorage.clear()
@@ -692,39 +694,41 @@ export default class Widget {
         this.beep.play()
         this.streamingMode = streamingMode
         this.writingTarget = document.getElementById(target)
-        this.widget.stopStreamingPipeline()
-        this.widget.startStreaming()
+        this.linto.stopStreamingPipeline()
+        this.linto.startStreaming()
     }
-
+    setHandler(label, func) {
+        this.linto.addEventListener(label, func)
+    }
     initLintoWeb = async() => {
         // Set chatbot
-        this.widget = new Linto(this.lintoWebHost, this.lintoWebToken)
+        this.linto = new Linto(this.lintoWebHost, this.lintoWebToken)
 
         // Chatbot events
-        this.widget.addEventListener("mqtt_connect", handlers.mqttConnectHandler.bind(this))
-        this.widget.addEventListener("mqtt_connect_fail", handlers.mqttConnectFailHandler.bind(this))
-        this.widget.addEventListener("mqtt_error", handlers.mqttErrorHandler.bind(this))
-        this.widget.addEventListener("mqtt_disconnect", handlers.mqttDisconnectHandler.bind(this))
-        this.widget.addEventListener("command_acquired", handlers.commandAcquired.bind(this))
-        this.widget.addEventListener("command_published", handlers.commandPublished.bind(this))
-        this.widget.addEventListener("speaking_on", handlers.audioSpeakingOn.bind(this))
-        this.widget.addEventListener("speaking_off", handlers.audioSpeakingOff.bind(this))
-        this.widget.addEventListener("streaming_start", handlers.streamingStart.bind(this))
-        this.widget.addEventListener("streaming_stop", handlers.streamingStop.bind(this))
-        this.widget.addEventListener("streaming_chunk", handlers.streamingChunk.bind(this))
-        this.widget.addEventListener("streaming_final", handlers.streamingFinal.bind(this))
-        this.widget.addEventListener("streaming_fail", handlers.streamingFail.bind(this))
-        this.widget.addEventListener("hotword_on", handlers.hotword.bind(this))
-        this.widget.addEventListener("ask_feedback_from_skill", handlers.askFeedback.bind(this))
-        this.widget.addEventListener("say_feedback_from_skill", handlers.sayFeedback.bind(this))
-        this.widget.addEventListener("custom_action_from_skill", handlers.customHandler.bind(this))
-        this.widget.addEventListener("startRecording", handlers.textPublished.bind(this))
-        this.widget.addEventListener("chatbot_acquired", handlers.chatbotAcquired.bind(this))
-        this.widget.addEventListener("chatbot_published", handlers.chatbotPublished.bind(this))
-        this.widget.addEventListener("action_published", handlers.actionPublished.bind(this))
-        this.widget.addEventListener("action_feedback", handlers.actionFeedback.bind(this))
-        this.widget.addEventListener("chatbot_feedback", handlers.widgetFeedback.bind(this))
-        this.widget.addEventListener("chatbot_feedback_from_skill", handlers.widgetFeedback.bind(this))
+        this.linto.addEventListener("mqtt_connect", handlers.mqttConnectHandler.bind(this))
+        this.linto.addEventListener("mqtt_connect_fail", handlers.mqttConnectFailHandler.bind(this))
+        this.linto.addEventListener("mqtt_error", handlers.mqttErrorHandler.bind(this))
+        this.linto.addEventListener("mqtt_disconnect", handlers.mqttDisconnectHandler.bind(this))
+        this.linto.addEventListener("command_acquired", handlers.commandAcquired.bind(this))
+        this.linto.addEventListener("command_published", handlers.commandPublished.bind(this))
+        this.linto.addEventListener("speaking_on", handlers.audioSpeakingOn.bind(this))
+        this.linto.addEventListener("speaking_off", handlers.audioSpeakingOff.bind(this))
+        this.linto.addEventListener("streaming_start", handlers.streamingStart.bind(this))
+        this.linto.addEventListener("streaming_stop", handlers.streamingStop.bind(this))
+        this.linto.addEventListener("streaming_chunk", handlers.streamingChunk.bind(this))
+        this.linto.addEventListener("streaming_final", handlers.streamingFinal.bind(this))
+        this.linto.addEventListener("streaming_fail", handlers.streamingFail.bind(this))
+        this.linto.addEventListener("hotword_on", handlers.hotword.bind(this))
+        this.linto.addEventListener("ask_feedback_from_skill", handlers.askFeedback.bind(this))
+        this.linto.addEventListener("say_feedback_from_skill", handlers.sayFeedback.bind(this))
+        this.linto.addEventListener("custom_action_from_skill", handlers.customHandler.bind(this))
+        this.linto.addEventListener("startRecording", handlers.textPublished.bind(this))
+        this.linto.addEventListener("chatbot_acquired", handlers.chatbotAcquired.bind(this))
+        this.linto.addEventListener("chatbot_published", handlers.chatbotPublished.bind(this))
+        this.linto.addEventListener("action_published", handlers.actionPublished.bind(this))
+        this.linto.addEventListener("action_feedback", handlers.actionFeedback.bind(this))
+        this.linto.addEventListener("chatbot_feedback", handlers.widgetFeedback.bind(this))
+        this.linto.addEventListener("chatbot_feedback_from_skill", handlers.widgetFeedback.bind(this))
 
         // Bind custom events
         if (this.lintoCustomEvents.length > 0) {
@@ -734,15 +738,15 @@ export default class Widget {
         }
 
         // Widget login
-        await this.widget.login()
+        await this.linto.login()
 
         if (this.hotwordEnabled === 'false') {
-            this.widget.startAudioAcquisition(false, this.hotwordValue, 0.99)
+            this.linto.startAudioAcquisition(false, this.hotwordValue, 0.99)
         } else {
-            this.widget.startAudioAcquisition(true, this.hotwordValue, 0.99)
+            this.linto.startAudioAcquisition(true, this.hotwordValue, 0.99)
         }
 
-        this.widget.startStreamingPipeline()
+        this.linto.startStreamingPipeline()
         this.widgetEnabled = true
         let widgetStatus = {
             widgetEnabled: this.widgetEnabled,
@@ -753,5 +757,5 @@ export default class Widget {
     }
 }
 
-window.Widget = Widget
-module.exports = Widget
+window.LintoUI = LintoUI
+module.exports = LintoUI

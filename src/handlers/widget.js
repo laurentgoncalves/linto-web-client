@@ -76,8 +76,19 @@ export async function sayFeedback(event) {
     }
     let toSay = null
     this.setWidgetBubbleContent(event.detail.behavior.say.text)
+    if (this.widgetMode === 'minimal-streaming')  {
+        const mainContent = document.getElementById('widget-ms-content-current')
+        this.setMinimalOverlaySecondaryContent(mainContent.innerHTML)
+        this.setMinimalOverlayMainContent(event.detail.behavior.say.text)
+
+    }
     if (this.audioResponse === 'true') {
-        toSay = await this.widget.say('fr-FR', event.detail.behavior.say.text)
+        toSay = await this.linto.say('fr-FR', event.detail.behavior.say.text)
+        if (toSay !== null) {
+            if (this.widgetMode === 'minimal-streaming')  {
+                this.closeMinimalOverlay()
+            }
+        }
     }
     return toSay
 }
@@ -101,15 +112,16 @@ export function streamingChunk(event) {
                 console.log("Streaming utterance completed : ", event.detail.behavior.streaming.text)
             }
             this.setUserBubbleContent(event.detail.behavior.streaming.text)
-            this.widget.stopStreaming()
+            this.linto.stopStreaming()
             this.createBubbleWidget()
 
             if (this.widgetMode === 'minimal-streaming') {
                 this.setMinimalOverlayMainContent(event.detail.behavior.streaming.text)
                 this.setMinimalOverlayAnimation('thinking')
             }
+            this.widgetContentScrollBottom()
             setTimeout(() => {
-                this.widget.sendCommandText(event.detail.behavior.streaming.text)
+                this.linto.sendCommandText(event.detail.behavior.streaming.text)
             }, 1000)
         }
     }
@@ -127,8 +139,9 @@ export function streamingChunk(event) {
             }
             this.writingTarget.innerHTML = event.detail.behavior.streaming.text
 
-            this.widget.stopStreaming()
-            this.widget.startStreamingPipeline()
+            this.linto.stopStreaming()
+            this.linto.startStreamingPipeline()
+            this.widgetContentScrollBottom()
         }
     }
     // STREAMING + STOP WORD ("stop")
@@ -146,7 +159,9 @@ export function streamingChunk(event) {
                 console.log("Streaming utterance completed : ", event.detail.behavior.streaming.text)
             }
             if (event.detail.behavior.streaming.text === this.streamingStopWord) {
-                this.widget.stopStreaming()
+                this.linto.stopStreaming()
+                this.linto.startStreamingPipeline()
+
             } else {
                 this.streamingContent += (this.streamingContent.length > 0 ? '\n' : '') + event.detail.behavior.streaming.text
                 this.writingTarget.innerHTML = this.streamingContent
@@ -171,6 +186,7 @@ export function streamingStop(event) {
     if (this.debug) {
         console.log("Streaming stop")
     }
+    this.cleanUserBubble()
     this.streamingMode = 'vad'
     this.writingTarget = null
     const micBtn = document.getElementById('widget-mic-btn')
@@ -186,8 +202,8 @@ export function streamingFail(event) {
         console.log("Streaming cannot start : ", event.detail)
     }
     if (event.detail.behavior.streaming.status === 'chunk') {
-        this.widget.stopStreaming()
-        this.widget.stopStreamingPipeline()
+        this.linto.stopStreaming()
+        this.linto.stopStreamingPipeline()
     }
     this.cleanUserBubble()
 
@@ -201,7 +217,7 @@ export function streamingFail(event) {
 
     this.setWidgetRightCornerAnimation('error')
     this.widgetRightCornerAnimation.onComplete = () => {
-        this.widget.startStreamingPipeline()
+        this.linto.startStreamingPipeline()
         setTimeout(() => {
             this.setWidgetRightCornerAnimation('awake')
         }, 500)
@@ -244,12 +260,6 @@ export function askFeedback(event) {
         console.log('Ask feedback', event)
     }
 }
-export function setHandler(label, func) {
-    this.widget.addEventListener(label, func)
-}
-
-
-
 export async function widgetFeedback(e) {
     if (this.debug) {
         console.log('chatbot feedback', e)
@@ -272,7 +282,7 @@ export async function widgetFeedback(e) {
         let isLink = this.stringIsHTML(answer)
         if (this.audioResponse === 'true') {
             if (!isLink) {
-                let sayResp = await this.widget.say('fr-FR', answer)
+                let sayResp = await this.linto.say('fr-FR', answer)
                 if (this.widgetMode === 'minimal-streaming') {
                     if (!!sayResp) {
                         this.closeMinimalOverlay()
