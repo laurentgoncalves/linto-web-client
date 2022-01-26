@@ -1,7 +1,7 @@
 export async function mqttConnect() {
     //clear any previous subs
     this.client.unsubscribe(this.ingress)
-    this.client.subscribe(this.ingress, async (e) => {
+    this.client.subscribe(this.ingress, async(e) => {
         if (!e) {
             let payload = {
                 "connexion": "online",
@@ -31,13 +31,14 @@ export function mqttMessage(topic, payload) {
         const command = topicArray[3] // i.e nlp
         const message = new Object()
         message.payload = JSON.parse(payload.toString())
+
         switch (command) {
             // Command pipeline answers for ${clientCode}/tolinto/${sessionId}/nlp/file/${fileId}
             case "nlp":
                 this.pendingCommandIds = this.pendingCommandIds.filter(element => element !== topicArray[5]) //removes from array of files to process
-                // Say is the final step of a ask/ask/.../say transaction
+                    // Say is the final step of a ask/ask/.../say transaction
                 if (message.payload.behavior.say) this.conversationData = {}
-                // otherwise sets local conversation data to the received value
+                    // otherwise sets local conversation data to the received value
                 else if (message.payload.behavior.ask) this.conversationData = message.payload.behavior.conversationData
 
                 this.dispatchEvent(new CustomEvent(command, {
@@ -56,7 +57,7 @@ export function mqttMessage(topic, payload) {
                     detail: message.payload
                 }))
                 break
-            // Received on connection tolinto/${sessionId}/tts_lang/
+                // Received on connection tolinto/${sessionId}/tts_lang/
             case "tts_lang":
                 this.dispatchEvent(new CustomEvent(command, {
                     detail: message.payload

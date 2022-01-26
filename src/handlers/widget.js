@@ -44,16 +44,16 @@ export function hotword(event) {
     if (this.debug) {
         console.log("Hotword triggered : ", event.detail)
     }
-    if (this.hotwordEnabled) {
-        const widgetMultiModal = document.getElementById('widget-mm')
-        if (widgetMultiModal.classList.contains('hidden')) {
-            if (this.widgetMode !== 'minimal-streaming') {
-                this.openWidget()
-            } else {
-                this.openMinimalOverlay()
-                this.setMinimalOverlayAnimation('listening')
-            }
+    if (this.hotwordEnabled && this.widgetState === 'waiting') {
+        this.widgetState = 'listening'
+        if (this.widgetMode === 'minimal-streaming') {
+            this.closeWidget()
+            this.openMinimalOverlay()
+            this.setMinimalOverlayAnimation('listening')
+        } else {
+            this.openWidget()
         }
+
         const widgetFooter = document.getElementById('widget-main-footer')
         const txtBtn = document.getElementById('widget-msg-btn')
         if (widgetFooter.classList.contains('mic-disabled')) {
@@ -61,7 +61,6 @@ export function hotword(event) {
             txtBtn.classList.add('txt-disabled')
             widgetFooter.classList.remove('mic-disabled')
             widgetFooter.classList.add('mic-enabled')
-
         }
     }
 }
@@ -74,100 +73,109 @@ export async function sayFeedback(event) {
     if (this.debug) {
         console.log("Saying : ", event.detail.behavior.say.text, " ---> Answer to : ", event.detail.transcript)
     }
-    let toSay = null
     this.setWidgetBubbleContent(event.detail.behavior.say.text)
     if (this.widgetMode === 'minimal-streaming')  {
         const mainContent = document.getElementById('widget-ms-content-current')
         this.setMinimalOverlaySecondaryContent(mainContent.innerHTML)
         this.setMinimalOverlayMainContent(event.detail.behavior.say.text)
-
     }
-    if (this.audioResponse === 'true') {
-        toSay = await this.linto.say('fr-FR', event.detail.behavior.say.text)
-        if (toSay !== null) {
-            if (this.widgetMode === 'minimal-streaming')  {
-                this.closeMinimalOverlay()
-            }
-        }
-    }
-    return toSay
+    await this.widgetSay(event.detail.behavior.say.text)
 }
 
 export function streamingChunk(event) {
-    // VAD
-    if (this.streamingMode === 'vad') {
-        if (event.detail.behavior.streaming.partial) {
-            if (this.debug) {
-                console.log("Streaming chunk received : ", event.detail.behavior.streaming.partial)
+    if (this.widgetState === 'listening') {
+        // VAD
+        if (this.streamingMode === 'vad') {
+            if (event.detail.behavior.streaming.partial) {
+                if (this.debug) {
+                    console.log("Streaming chunk received : ", event.detail.behavior.streaming.partial)
+                }
+                this.streamingContent = event.detail.behavior.streaming.partial
+                this.setUserBubbleContent(this.streamingContent)
+                if (this.widgetMode === 'minimal-streaming') {
+                    this.setMinimalOverlayMainContent(this.streamingContent)
+                }
+                this.widgetContentScrollBottom()
             }
-            this.setUserBubbleContent(event.detail.behavior.streaming.partial)
-            if (this.widgetMode === 'minimal-streaming') {
-                this.setMinimalOverlayMainContent(event.detail.behavior.streaming.partial)
+            if (event.detail.behavior.streaming.text || event.detail.behavior.streaming.text === '') {
+                if (this.debug) {
+                    console.log("Streaming utterance completed : ", event.detail.behavior.streaming.text)
+                }
+                this.linto.stopStreaming()
+                if (this.streamingContent !== '') {
+                    this.setUserBubbleContent(event.detail.behavior.streaming.text)
+                    this.createBubbleWidget()
+                    if (this.widgetMode === 'minimal-streaming') {
+                        this.setMinimalOverlayMainContent(event.detail.behavior.streaming.text)
+                        this.setMinimalOverlayAnimation('thinking')
+                    }
+                    this.linto.sendCommandText(event.detail.behavior.streaming.text)
+                    this.streamingContent = ''
+                    this.widgetState = 'treating'
+                } else {
+                    if (this.widgetMode === 'minimal-streaming') {
+                        setTimeout(() => {
+                            this.closeMinimalOverlay()
+                            this.widgetState = 'waiting'
+                        }, 2000)
+                    }
+                }
             }
-            this.widgetContentScrollBottom()
+        }
+    } else {
+        // VAD CUSTOM
+        if (this.streamingMode === 'vad-custom' && this.writingTarget !== null) {
+            if (event.detail.behavior.streaming.partial) {
+                if (this.debug) {
+                    console.log("Streaming chunk received : ", event.detail.behavior.streaming.partial)
+                }
+                this.streamingContent = event.detail.behavior.streaming.partial
+                this.writingTarget.innerHTML = this.streamingContent
 
-        }
-        if (event.detail.behavior.streaming.text) {
-            if (this.debug) {
-                console.log("Streaming utterance completed : ", event.detail.behavior.streaming.text)
             }
-            this.setUserBubbleContent(event.detail.behavior.streaming.text)
-            this.linto.stopStreaming()
-            this.createBubbleWidget()
+            if (event.detail.behavior.streaming.text) {
+                if (this.debug) {
+                    console.log("Streaming utterance completed : ", event.detail.behavior.streaming.text)
+                }
+                this.streamingContent = event.detail.behavior.streaming.text
 
-            if (this.widgetMode === 'minimal-streaming') {
-                this.setMinimalOverlayMainContent(event.detail.behavior.streaming.text)
-                this.setMinimalOverlayAnimation('thinking')
-            }
-            this.widgetContentScrollBottom()
-            setTimeout(() => {
-                this.linto.sendCommandText(event.detail.behavior.streaming.text)
-            }, 1000)
-        }
-    }
-    // VAD CUSTOM
-    else if (this.streamingMode === 'vad-custom' && this.writingTarget !== null) {
-        if (event.detail.behavior.streaming.partial) {
-            if (this.debug) {
-                console.log("Streaming chunk received : ", event.detail.behavior.streaming.partial)
-            }
-            this.writingTarget.innerHTML = event.detail.behavior.streaming.partial
-        }
-        if (event.detail.behavior.streaming.text) {
-            if (this.debug) {
-                console.log("Streaming utterance completed : ", event.detail.behavior.streaming.text)
-            }
-            this.writingTarget.innerHTML = event.detail.behavior.streaming.text
-
-            this.linto.stopStreaming()
-            this.linto.startStreamingPipeline()
-            this.widgetContentScrollBottom()
-        }
-    }
-    // STREAMING + STOP WORD ("stop")
-    else if (this.streamingMode === 'infinite' && this.writingTarget !== null) {
-        if (event.detail.behavior.streaming.partial) {
-            if (this.debug) {
-                console.log("Streaming chunk received : ", event.detail.behavior.streaming.partial)
-            }
-            if (event.detail.behavior.streaming.partial !== this.streamingStopWord) {
-                this.writingTarget.innerHTML = this.streamingContent + (this.streamingContent.length > 0 ? '\n' : '') + event.detail.behavior.streaming.partial
-            }
-        }
-        if (event.detail.behavior.streaming.text) {
-            if (this.debug) {
-                console.log("Streaming utterance completed : ", event.detail.behavior.streaming.text)
-            }
-            if (event.detail.behavior.streaming.text === this.streamingStopWord) {
+                this.writingTarget.innerHTML = this.streamingContent
                 this.linto.stopStreaming()
                 this.linto.startStreamingPipeline()
+                this.widgetContentScrollBottom()
+                this.streamingContent = ''
+                this.widgetState = 'waiting'
+            }
+        }
+        // STREAMING + STOP WORD ("stop")
+        else if (this.streamingMode === 'infinite' && this.writingTarget !== null) {
+            if (event.detail.behavior.streaming.partial) {
+                if (this.debug) {
+                    console.log("Streaming chunk received : ", event.detail.behavior.streaming.partial)
+                }
+                if (event.detail.behavior.streaming.partial !== this.streamingStopWord) {
+                    this.writingTarget.innerHTML = this.streamingContent + (this.streamingContent.length > 0 ? '\n' : '') + event.detail.behavior.streaming.partial
+                }
+            }
+            if (event.detail.behavior.streaming.text) {
+                if (this.debug) {
+                    console.log("Streaming utterance completed : ", event.detail.behavior.streaming.text)
+                }
+                if (event.detail.behavior.streaming.text === this.streamingStopWord) {
+                    this.linto.stopStreaming()
+                    this.linto.startStreamingPipeline()
+                    this.streamingContent = ''
+                    this.widgetState = 'waiting'
 
-            } else {
-                this.streamingContent += (this.streamingContent.length > 0 ? '\n' : '') + event.detail.behavior.streaming.text
-                this.writingTarget.innerHTML = this.streamingContent
+                } else {
+                    this.streamingContent += (this.streamingContent.length > 0 ? '\n' : '') + event.detail.behavior.streaming.text
+                    this.writingTarget.innerHTML = this.streamingContent
+
+                }
             }
         }
     }
+
 }
 
 
@@ -254,6 +262,7 @@ export async function customHandler(e) {
     }
     this.cleanWidgetBubble()
     this.closeMinimalOverlay()
+    this.widgetState = 'waiting'
 }
 export function askFeedback(event) {
     if (this.debug) {
@@ -277,28 +286,7 @@ export async function widgetFeedback(e) {
                 this.setMinimalOverlayAnimation('talking')
             }
         }
-
         this.setWidgetFeedbackData(data)
-        let isLink = this.stringIsHTML(answer)
-        if (this.audioResponse === 'true') {
-            if (!isLink) {
-                let sayResp = await this.linto.say('fr-FR', answer)
-                if (this.widgetMode === 'minimal-streaming') {
-                    if (!!sayResp) {
-                        this.closeMinimalOverlay()
-                    } else {
-                        setTimeout(() => {
-                            this.closeMinimalOverlay()
-                        }, 4000)
-                    }
-                }
-            }
-        } else {
-            if (this.widgetMode === 'minimal-streaming') {
-                setTimeout(() => {
-                    this.closeMinimalOverlay()
-                }, 4000)
-            }
-        }
+        await this.widgetSay(answer)
     }
 }

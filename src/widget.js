@@ -39,6 +39,7 @@ export default class LintoUI {
         this.streamingMode = 'vad'
         this.writingTarget = null
         this.streamingContent = ''
+        this.widgetState = 'sleeping'
 
         // SETTINGS 
         this.hotwordValue = 'linto'
@@ -69,7 +70,6 @@ export default class LintoUI {
         /* INITIALIZATION */
         this.init(data)
     }
-
 
     async init(data) {
         // Set custom parameters
@@ -193,7 +193,7 @@ export default class LintoUI {
                 if (this.widgetMode === 'minimal-streaming' && this.widgetEnabled) {
                     this.openMinimalOverlay()
                     this.setMinimalOverlayAnimation('listening')
-                    this.linto.startStreaming()
+                    this.linto.startStreaming(0)
                 } else {
                     this.openWidget()
                 }
@@ -257,7 +257,7 @@ export default class LintoUI {
                     this.linto.stopStreaming()
                     this.cleanUserBubble()
                 } else {
-                    this.linto.startStreaming()
+                    this.linto.startStreaming(0)
                 }
             }
 
@@ -423,6 +423,7 @@ export default class LintoUI {
         widgetShowBtn.classList.add('hidden')
         widgetMultiModal.classList.remove('hidden')
         widgetMultiModal.classList.add('visible')
+        this.widgetContentScrollBottom()
     }
     closeWidget() {
         const widgetShowBtn = document.getElementById('widget-show-btn')
@@ -596,9 +597,7 @@ export default class LintoUI {
 
     }
     widgetContentScrollBottom() {
-
         const contentWrapper = document.getElementById('widget-main-content')
-
         contentWrapper.scrollTo({
             top: contentWrapper.scrollHeight,
             left: 0,
@@ -674,10 +673,30 @@ export default class LintoUI {
         const secContent = document.getElementById('widget-ms-content-previous')
         secContent.innerHTML = txt
     }
-    say = async(text) => {
-        this.lintostopSpeech()
-        const toSay = await this.linto.say('fr-FR', text)
-        return toSay
+    async widgetSay(answer) {
+        this.linto.stopSpeech()
+        let isLink = this.stringIsHTML(answer)
+        let sayResp = null
+        this.widgetState = 'saying'
+        if (this.audioResponse === 'true' && !isLink) {
+            sayResp = await this.linto.say('fr-FR', answer)
+            this.widgetState = 'waiting'
+        } else {
+            this.widgetState = 'waiting'
+        }
+        if (sayResp !== null) {
+            if (this.widgetMode === 'minimal-streaming') {
+                this.closeMinimalOverlay()
+            }
+            this.widgetState = 'waiting'
+        } else {
+            if (this.widgetMode === 'minimal-streaming') {
+                setTimeout(() => {
+                    this.closeMinimalOverlay()
+                }, 4000)
+                this.widgetState = 'waiting'
+            }
+        }
     }
     async stopAll() {
         this.linto.stopStreaming()
@@ -695,7 +714,7 @@ export default class LintoUI {
         this.streamingMode = streamingMode
         this.writingTarget = document.getElementById(target)
         this.linto.stopStreamingPipeline()
-        this.linto.startStreaming()
+        this.linto.startStreaming(0)
     }
     setHandler(label, func) {
         this.linto.addEventListener(label, func)
@@ -748,6 +767,7 @@ export default class LintoUI {
 
         this.linto.startStreamingPipeline()
         this.widgetEnabled = true
+        this.widgetState = 'waiting'
         let widgetStatus = {
             widgetEnabled: this.widgetEnabled,
             hotwordEnabled: this.hotwordEnabled,

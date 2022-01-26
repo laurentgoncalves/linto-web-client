@@ -8,7 +8,7 @@ export function vadStatus(event) {
 
 export function hotwordCommandBuffer(hotWordEvent) {
     this.dispatchEvent(new CustomEvent("hotword_on", hotWordEvent))
-    const whenSpeakingOff = async () => {
+    const whenSpeakingOff = async() => {
         await this.sendCommandBuffer()
         this.removeEventListener("speaking_off", whenSpeakingOff)
         this.audio.hotword.resume()
@@ -21,7 +21,7 @@ export function hotwordCommandBuffer(hotWordEvent) {
 export function hotwordStreaming(hotWordEvent) {
     this.dispatchEvent(new CustomEvent("hotword_on", hotWordEvent))
     this.startStreaming()
-    const whenSpeakingOff = async () => {
+    const whenSpeakingOff = async() => {
         this.stopStreaming()
         this.removeEventListener("speaking_off", whenSpeakingOff)
         this.audio.hotword.resume()
@@ -61,13 +61,13 @@ export async function nlpAnswer(event) {
 
 }
 
-export async function chatbotAnswer(event){
+export async function chatbotAnswer(event) {
     if (event.detail.behavior.chatbot) {
         this.dispatchEvent(new CustomEvent("chatbot_feedback", {
             detail: event.detail
         }))
         return
-    }else {
+    } else {
         this.dispatchEvent(new CustomEvent("chatbot_error", {
             detail: event.detail
         }))
@@ -75,13 +75,13 @@ export async function chatbotAnswer(event){
     }
 }
 
-export async function actionAnswer(event){
+export async function actionAnswer(event) {
     if (event.detail.behavior) {
         this.dispatchEvent(new CustomEvent("action_feedback", {
             detail: event.detail
         }))
         return
-    }else {
+    } else {
         this.dispatchEvent(new CustomEvent("action_error", {
             detail: event.detail
         }))
@@ -92,7 +92,7 @@ export async function actionAnswer(event){
 // Might be an error
 export function streamingStartAck(event) {
     this.streamingPublishHandler = streamingPublish.bind(this)
-    if (event.detail.behavior.streaming.status == "started"){
+    if (event.detail.behavior.streaming.status == "started") {
         this.audio.downSampler.addEventListener("downSamplerFrame", this.streamingPublishHandler)
         this.dispatchEvent(new CustomEvent("streaming_start", {
             detail: event.detail
@@ -104,26 +104,26 @@ export function streamingStartAck(event) {
     }
 }
 
-export function streamingStopAck(event){
+export function streamingStopAck(event) {
     this.dispatchEvent(new CustomEvent("streaming_stop", {
         detail: event.detail
     }))
 }
 
-export function streamingChunk(event){
+export function streamingChunk(event) {
     this.dispatchEvent(new CustomEvent("streaming_chunk", {
         detail: event.detail
     }))
 }
 
-export function streamingFinal(event){
+export function streamingFinal(event) {
     this.dispatchEvent(new CustomEvent("streaming_final", {
         detail: event.detail
     }))
 }
 
 
-export function streamingFail(event){
+export function streamingFail(event) {
     this.dispatchEvent(new CustomEvent("streaming_fail", {
         detail: event.detail
     }))
