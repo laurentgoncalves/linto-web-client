@@ -183,6 +183,13 @@ $redDark: #fd3b3b;
                 }
             }
         }
+        .widget-init-settings {
+            text-align: left;
+            width: 100%;
+            .widget-settings-label {
+                font-size: 14px;
+            }
+        }
     }
     /* widget HEADER */
     .widget-mm-header {

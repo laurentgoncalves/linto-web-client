@@ -2,6 +2,7 @@ import linto from './linto.js'
 import lottie from './lib/lottie.min.js'
 import * as handlers from './handlers/widget.js'
 import fs from 'fs'
+import { isFunction } from 'util'
 
 const micJson = require('./assets/json/microphone.json')
 const lintoThinkJson = require('./assets/json/linto-think.json')
@@ -208,7 +209,16 @@ export default class LintoUI {
 
             // Start widget
             widgetStartBtn.onclick = async() => {
-                await this.initLintoWeb()
+
+                let hotwordEnabled = document.getElementById('widget-init-settings-hotword')
+                let audioResponseEnabled = document.getElementById('widget-init-settings-say-response')
+
+                let options = {
+                    hotwordEnabled: hotwordEnabled.checked,
+                    audioResponseEnabled: audioResponseEnabled.checked
+                }
+
+                await this.initLintoWeb(options)
                 this.startWidget()
             }
 
@@ -327,15 +337,23 @@ export default class LintoUI {
             // Local Storage and settings
             if (localStorage.getItem('lintoWidget') !== null) {
                 const storage = JSON.parse(localStorage.getItem('lintoWidget'))
+
                 if (!!storage.hotwordEnabled) {
                     this.hotwordEnabled = storage.hotwordEnabled
+
                 }
                 if (!!storage.audioRespEnabled) {
                     this.audioResponse = storage.audioRespEnabled
                 }
+                let options = {
+                    hotwordEnabled: storage.hotwordEnabled,
+                    audioResponseEnabled: storage.audioRespEnabled
+                }
+
                 if (storage.widgetEnabled === true || storage.widgetEnabled === 'true') {
-                    await this.initLintoWeb()
+                    await this.initLintoWeb(options)
                     this.startWidget()
+
                 }
             }
             this.hotwordEnabled === 'false' ? settingsHotword.checked = false : settingsHotword.checked = true
@@ -471,6 +489,15 @@ export default class LintoUI {
         widgetSettingsBtn.classList.add('opened')
         widgetSettings.classList.remove('hidden')
         widgetBody.classList.add('hidden')
+
+        let enableHotwordInput = document.getElementById('widget-settings-hotword')
+        let enableSayRespInput = document.getElementById('widget-settings-say-response')
+        if (!this.hotwordEnabled || this.hotwordEnabled === 'false') {
+            enableHotwordInput.checked = false
+        }
+        if (!this.audioResponse || this.audioResponse === 'false') {
+            enableSayRespInput.checked = false
+        }
     }
     hideSettings() {
         const widgetSettingsBtn = document.getElementById('widget-mm-settings-btn')
@@ -719,7 +746,7 @@ export default class LintoUI {
     setHandler(label, func) {
         this.linto.addEventListener(label, func)
     }
-    initLintoWeb = async() => {
+    initLintoWeb = async(options) => {
         // Set chatbot
         this.linto = new Linto(this.lintoWebHost, this.lintoWebToken)
 
@@ -759,7 +786,10 @@ export default class LintoUI {
         // Widget login
         await this.linto.login()
 
-        if (this.hotwordEnabled === 'false') {
+        this.hotwordEnabled = options.hotwordEnabled
+        this.audioResponse = options.audioResponseEnabled
+
+        if (!this.hotwordEnabled || this.hotwordEnabled === 'false') {
             this.linto.startAudioAcquisition(false, this.hotwordValue, 0.99)
         } else {
             this.linto.startAudioAcquisition(true, this.hotwordValue, 0.99)
