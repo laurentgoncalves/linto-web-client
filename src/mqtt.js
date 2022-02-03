@@ -15,7 +15,7 @@ export default class MqttClient extends EventTarget {
 
         const cnxParam = {
             clean: true,
-            keepalive: 10,
+            keepalive: 300,
             reconnectPeriod: Math.floor(Math.random() * 1000) + 1000, // ms for reconnect
             will: {
                 topic: `${this.egress}/status`,
