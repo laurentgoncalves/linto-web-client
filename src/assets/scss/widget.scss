@@ -645,3 +645,16 @@ $redDark: #fd3b3b;
         display: none !important;
     }
 }
+
+#widget-error-message {
+    position: absolute;
+    top: 0;
+    left: -220px;
+    width: 200px;
+    text-align: left;
+    background: $redDark;
+    color: #fff;
+    padding: 10px;
+    font-size: 14px;
+    @include borderRadius(5px);
+}

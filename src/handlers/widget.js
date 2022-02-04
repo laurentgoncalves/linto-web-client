@@ -175,9 +175,7 @@ export function streamingChunk(event) {
             }
         }
     }
-
 }
-
 
 export function streamingStart(event) {
     this.beep.play()
