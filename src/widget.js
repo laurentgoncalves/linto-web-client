@@ -2,7 +2,6 @@ import linto from './linto.js'
 import lottie from './lib/lottie.min.js'
 import * as handlers from './handlers/widget.js'
 import fs from 'fs'
-import { isFunction } from 'util'
 
 const micJson = require('./assets/json/microphone.json')
 const lintoThinkJson = require('./assets/json/linto-think.json')
@@ -210,7 +209,6 @@ export default class LintoUI {
                     audioResponseEnabled: audioResponseEnabledSettings.checked
                 }
                 await this.initLintoWeb(options)
-                this.startWidget()
             }
 
             // Collapse widget 
@@ -343,7 +341,6 @@ export default class LintoUI {
 
                 if (storage.widgetEnabled === true || storage.widgetEnabled === 'true') {
                     await this.initLintoWeb(options)
-                    this.startWidget()
 
                 }
             }
@@ -393,9 +390,12 @@ export default class LintoUI {
                     className: 'linto-animation'
                 }
             })
-            this.widgetRightCornerAnimation.onComplete = () => {
-                cb()
+            if (!!cb) {
+                this.widgetRightCornerAnimation.onComplete = () => {
+                    cb()
+                }
             }
+
         }
     }
 
@@ -778,34 +778,62 @@ export default class LintoUI {
         this.linto.addEventListener("chatbot_feedback", handlers.widgetFeedback.bind(this))
         this.linto.addEventListener("chatbot_feedback_from_skill", handlers.widgetFeedback.bind(this))
 
-        // Bind custom events
-        if (this.lintoCustomEvents.length > 0) {
-            for (let event of this.lintoCustomEvents) {
-                this.setHandler(event.flag, event.func)
-            }
-        }
-
         // Widget login
-        await this.linto.login()
 
-        this.hotwordEnabled = options.hotwordEnabled
-        this.audioResponse = options.audioResponseEnabled
+        try {
+            let login = await this.linto.login()
+            if (login === true) {
+                this.widgetEnabled = true
 
-        if (!this.hotwordEnabled || this.hotwordEnabled === 'false') {
-            this.linto.startAudioAcquisition(false, this.hotwordValue, 0.99)
-        } else {
-            this.linto.startAudioAcquisition(true, this.hotwordValue, 0.99)
+                // Bind custom events
+                if (this.lintoCustomEvents.length > 0) {
+                    for (let event of this.lintoCustomEvents) {
+                        this.setHandler(event.flag, event.func)
+                    }
+                }
+                this.hotwordEnabled = options.hotwordEnabled
+                this.audioResponse = options.audioResponseEnabled
+
+                if (!this.hotwordEnabled || this.hotwordEnabled === 'false') {
+                    this.linto.startAudioAcquisition(false, this.hotwordValue, 0.99)
+                } else {
+                    this.linto.startAudioAcquisition(true, this.hotwordValue, 0.99)
+                }
+
+                this.linto.startStreamingPipeline()
+                this.widgetState = 'waiting'
+                let widgetStatus = {
+                    widgetEnabled: this.widgetEnabled,
+                    hotwordEnabled: this.hotwordEnabled,
+                    audioRespEnabled: this.audioResponse
+                }
+                localStorage.setItem('lintoWidget', JSON.stringify(widgetStatus))
+                this.startWidget()
+            } else {
+                throw login
+            }
+        } catch (error) {
+            this.closeWidget()
+            this.setWidgetRightCornerAnimation('error', () => {
+                if (!!error.message) {
+                    let widgetErrorMsg = document.getElementById('widget-error-message')
+                    widgetErrorMsg.classList.remove('hidden')
+                    widgetErrorMsg.innerHTML = error.message
+                    setTimeout(() => {
+                        widgetErrorMsg.classList.add('hidden')
+                        widgetErrorMsg.innerHTML = ''
+                        this.setWidgetRightCornerAnimation('sleep')
+                        let widgetStatus = {
+                            widgetEnabled: false,
+                            hotwordEnabled: false,
+                            audioRespEnabled: false
+                        }
+                        localStorage.setItem('lintoWidget', JSON.stringify(widgetStatus))
+                    }, 4000)
+                }
+            })
+            return
         }
-
-        this.linto.startStreamingPipeline()
-        this.widgetEnabled = true
-        this.widgetState = 'waiting'
-        let widgetStatus = {
-            widgetEnabled: this.widgetEnabled,
-            hotwordEnabled: this.hotwordEnabled,
-            audioRespEnabled: this.audioResponse
-        }
-        localStorage.setItem('lintoWidget', JSON.stringify(widgetStatus))
     }
 }
 
