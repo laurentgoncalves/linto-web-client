@@ -44,11 +44,10 @@ export default class LintoUI {
 
         // SETTINGS 
         this.hotwordValue = 'linto'
-        this.hotwordEnabled = 'true'
-        this.audioResponse = 'true'
+        this.hotwordEnabled = true
+        this.audioResponse = true
 
         // ELEMENTS 
-        this.widgetFeedbackContent = []
         this.beep = null
 
         // CUSTOM EVENTS 
@@ -108,12 +107,6 @@ export default class LintoUI {
             if (!!data.hotwordValue) {
                 this.hotwordValue = data.hotwordValue
             }
-            if (!!data.hotwordEnabled) {
-                this.hotwordEnabled = data.hotwordEnabled
-            }
-            if (!!data.audioResponse) {
-                this.audioResponse = data.audioResponse
-            }
             // Animations
             if (!!data.widgetMicAnimation) {
                 this.widgetMicAnimation = require(data.widgetMicAnimation)
@@ -157,7 +150,7 @@ export default class LintoUI {
             // HTML (right corner)
             this.widgetContainer.innerHTML = htmlTemplate
             setTimeout(() => {
-                this.updateStyle(data)
+                this.updateWidgetTitle(data)
             }, 400)
 
             /* Widget elements */
@@ -209,15 +202,13 @@ export default class LintoUI {
 
             // Start widget
             widgetStartBtn.onclick = async() => {
-
-                let hotwordEnabled = document.getElementById('widget-init-settings-hotword')
-                let audioResponseEnabled = document.getElementById('widget-init-settings-say-response')
+                let hotwordEnabledSettings = document.getElementById('widget-init-settings-hotword')
+                let audioResponseEnabledSettings = document.getElementById('widget-init-settings-say-response')
 
                 let options = {
-                    hotwordEnabled: hotwordEnabled.checked,
-                    audioResponseEnabled: audioResponseEnabled.checked
+                    hotwordEnabled: hotwordEnabledSettings.checked,
+                    audioResponseEnabled: audioResponseEnabledSettings.checked
                 }
-
                 await this.initLintoWeb(options)
                 this.startWidget()
             }
@@ -360,11 +351,11 @@ export default class LintoUI {
             this.audioResponse === 'false' ? settingsAudioResp.checked = false : settingsAudioResp.checked = true
         }
     }
-    updateStyle(data) {
+    updateWidgetTitle(data) {
         const widgetTitleMain = document.getElementsByClassName('widget-mm-title')[0]
         const widgetTitleInit = document.getElementsByClassName('widget-init-title')[0]
-        widgetTitleMain.innerHTML = this.widgetTitle
-        widgetTitleInit.innerHTML = this.widgetTitle
+        widgetTitleMain.innerHTML = data.widgetTitle
+        widgetTitleInit.innerHTML = data.widgetTitle
     }
 
     // ANIMATION RIGHT CORNER
@@ -407,6 +398,8 @@ export default class LintoUI {
             }
         }
     }
+
+    // WIDGET MAIN 
     startWidget() {
         const widgetInitFrame = document.getElementById('widget-init-wrapper')
         const widgetMain = document.getElementById('widget-mm-main')
@@ -428,7 +421,6 @@ export default class LintoUI {
         }
     }
 
-    // WIDGET MAIN 
     openWidget() {
         const widgetShowBtn = document.getElementById('widget-show-btn')
         const widgetMultiModal = document.getElementById('widget-mm')
@@ -511,23 +503,31 @@ export default class LintoUI {
     updateWidgetSettings() {
         const hotwordCheckbox = document.getElementById('widget-settings-hotword')
         const audioRespCheckbox = document.getElementById('widget-settings-say-response')
-        if (!hotwordCheckbox.checked && this.hotwordEnabled === 'true') {
-            this.hotwordEnabled = 'false'
+
+        // Disable Hotword
+        if (!hotwordCheckbox.checked && this.hotwordEnabled) {
+            this.hotwordEnabled = false
             this.linto.stopStreamingPipeline()
             this.linto.stopAudioAcquisition()
             this.linto.startAudioAcquisition(false, this.hotwordValue, 0.99)
             this.linto.startStreamingPipeline()
-        } else if (hotwordCheckbox.checked && this.hotwordEnabled === 'false') {
-            this.hotwordEnabled = 'true'
+
+        }
+        // Enable Hotword
+        else if (hotwordCheckbox.checked && !this.hotwordEnabled) {
+            this.hotwordEnabled = true
             this.linto.stopStreamingPipeline()
             this.linto.stopAudioAcquisition()
             this.linto.startAudioAcquisition(true, this.hotwordValue, 0.99)
             this.linto.startStreamingPipeline()
         }
-        if (!audioRespCheckbox.checked && this.audioResponse === 'true') {
-            this.audioResponse = 'false'
-        } else if (audioRespCheckbox.checked && this.audioResponse === 'false') {
-            this.audioResponse = 'true'
+        // Disable AudioResponse
+        if (!audioRespCheckbox.checked && this.audioResponse) {
+            this.audioResponse = false
+        }
+        // Enable AudioResponse
+        else if (audioRespCheckbox.checked && !this.audioResponse) {
+            this.audioResponse = true
         }
         let widgetStatus = {
             widgetEnabled: this.widgetEnabled,
@@ -604,6 +604,8 @@ export default class LintoUI {
                 if (!!item.file && item.file.type === 'image') {
                     jhtml += `<img src="${item.file.url}" class="widget-content-img">`
                 }
+            } else if (item.eventType === 'sentence' && this.stringIsHTML(item.text))  {
+                jhtml += item.text
             }
         }
         jhtml += '</div>'
@@ -705,7 +707,7 @@ export default class LintoUI {
         let isLink = this.stringIsHTML(answer)
         let sayResp = null
         this.widgetState = 'saying'
-        if (this.audioResponse === 'true' && !isLink) {
+        if (this.audioResponse && !isLink) {
             sayResp = await this.linto.say('fr-FR', answer)
             this.widgetState = 'waiting'
         } else {

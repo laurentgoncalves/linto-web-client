@@ -74,11 +74,11 @@ export async function sayFeedback(event) {
         console.log("Saying : ", event.detail.behavior.say.text, " ---> Answer to : ", event.detail.transcript)
     }
     this.setWidgetBubbleContent(event.detail.behavior.say.text)
-    if (this.widgetMode === 'minimal-streaming')  {
-        const mainContent = document.getElementById('widget-ms-content-current')
-        this.setMinimalOverlaySecondaryContent(mainContent.innerHTML)
-        this.setMinimalOverlayMainContent(event.detail.behavior.say.text)
-    }
+
+    const mainContent = document.getElementById('widget-ms-content-current')
+    this.setMinimalOverlaySecondaryContent(mainContent.innerHTML)
+    this.setMinimalOverlayMainContent(event.detail.behavior.say.text)
+
     await this.widgetSay(event.detail.behavior.say.text)
 }
 
@@ -175,9 +175,7 @@ export function streamingChunk(event) {
             }
         }
     }
-
 }
-
 
 export function streamingStart(event) {
     this.beep.play()
@@ -278,6 +276,9 @@ export async function widgetFeedback(e) {
         let answer = e.detail.behavior.chatbot.answer.text
         let data = e.detail.behavior.chatbot.answer.data // chatbot answers (links)
 
+        if (data[0].eventType === 'sentence' && !this.stringIsHTML(data[0].text)) {
+            answer = data[0].text
+        }
         if (answer.length > 0) {
             this.setWidgetBubbleContent(answer)
             if (this.widgetMode === 'minimal-streaming') {
