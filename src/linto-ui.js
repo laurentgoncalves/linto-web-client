@@ -1,6 +1,6 @@
 import linto from './linto.js'
 import lottie from './lib/lottie.min.js'
-import * as handlers from './handlers/widget.js'
+import * as handlers from './handlers/linto-ui.js'
 import fs from 'fs'
 
 const micJson = require('./assets/json/microphone.json')
@@ -18,7 +18,7 @@ const audioFileBase64 = 'data:audio/ogg;base64,SUQzAwAAAAAAJlRQRTEAAAAcAAAAU291b
 const htmlTemplate = fs.readFileSync('./src/assets/template/widget-default.html', 'utf8');
 
 // Inserting CSS to DOM
-const cssFile = fs.readFileSync('./dist/widget.min.css', 'utf8');
+const cssFile = fs.readFileSync('./dist/linto-ui.min.css', 'utf8');
 
 export default class LintoUI {
     constructor(data) {
@@ -148,9 +148,11 @@ export default class LintoUI {
         if (!this.widgetEnabled) {
             // HTML (right corner)
             this.widgetContainer.innerHTML = htmlTemplate
-            setTimeout(() => {
-                this.updateWidgetTitle(data)
-            }, 400)
+            if (!!data.widgetTitle) {
+                setTimeout(() => {
+                    this.updateWidgetTitle(data)
+                }, 400)
+            }
 
             /* Widget elements */
             const widgetStartBtn = document.getElementById('widget-init-btn-enable');
@@ -277,7 +279,6 @@ export default class LintoUI {
                         return
                     } else {
                         this.createUserBubble()
-
                         this.setUserBubbleContent(text)
                         this.linto.sendCommandText(text)
                         this.createBubbleWidget()
@@ -395,7 +396,6 @@ export default class LintoUI {
                     cb()
                 }
             }
-
         }
     }
 
@@ -447,6 +447,7 @@ export default class LintoUI {
         widgetMultiModal.classList.remove('visible')
         widgetShowBtn.classList.add('visible')
         widgetShowBtn.classList.remove('hidden')
+        this.hideSettings()
         if (widgetShowBtn.classList.contains('sleeping')) {
             this.setWidgetRightCornerAnimation('sleep')
         } else {
@@ -619,7 +620,7 @@ export default class LintoUI {
                 this.createUserBubble()
                 this.setUserBubbleContent(value)
                 this.createBubbleWidget()
-                this.linto.sendWidgetText(value)
+                this.linto.sendChatbotText(value)
             }
         }
         this.widgetContentScrollBottom()
@@ -779,7 +780,6 @@ export default class LintoUI {
         this.linto.addEventListener("chatbot_feedback_from_skill", handlers.widgetFeedback.bind(this))
 
         // Widget login
-
         try {
             let login = await this.linto.login()
             if (login === true) {

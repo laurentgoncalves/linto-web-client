@@ -252,7 +252,7 @@ export default class Linto extends EventTarget {
         this.sendLintoText(text, { status: 'text' })
     }
 
-    async sendWidgetText(text) {
+    async sendChatbotText(text) {
         this.sendLintoText(text, { status: 'chatbot' })
     }
 

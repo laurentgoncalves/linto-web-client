@@ -170,7 +170,6 @@ export function streamingChunk(event) {
                 } else {
                     this.streamingContent += (this.streamingContent.length > 0 ? '\n' : '') + event.detail.behavior.streaming.text
                     this.writingTarget.innerHTML = this.streamingContent
-
                 }
             }
         }

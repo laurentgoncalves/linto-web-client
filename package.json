@@ -23,9 +23,9 @@
     "scripts": {
         "test": "parcel tests/index.html --out-dir dev-build --log-level 4 --no-cache",
         "build": "parcel build src/linto.js --log-level 4 --no-cache --no-source-maps --detailed-report --out-file linto.min.js",
-        "widget-css": "sass ./src/assets/scss/widget.scss ./dist/widget.min.css --style compressed --no-source-map",
-        "build-widget": "npm run widget-css && parcel build src/widget.js --log-level 4 --no-cache --no-source-maps --detailed-report --out-file linto.widget.min.js",
-        "test-widget": "npm run widget-css && parcel tests/widget/index.html --out-dir dev-build --log-level 4 --no-cache"
+        "css-linto-ui": "sass ./src/assets/scss/linto-ui.scss ./dist/linto-ui.min.css --style compressed --no-source-map",
+        "build-linto-ui": "npm run css-linto-ui && parcel build src/linto-ui.js --log-level 4 --no-cache --no-source-maps --detailed-report --out-file linto.ui.min.js",
+        "test-linto-ui": "npm run css-linto-ui && parcel tests/linto-ui/index.html --out-dir dev-build --log-level 4 --no-cache"
 
     },
     "repository": {
@@ -38,7 +38,7 @@
     },
     "homepage": "https://github.com/linto-ai/linto-web-client#readme",
     "devDependencies": {
-        "@linto-ai/webvoicesdk": "../WebVoiceSDK",
+        "@linto-ai/webvoicesdk": "^1.1.2",
         "axios": "^0.20.0",
         "base64-js": "^1.3.1",
         "mobile-detect": "^1.4.4",
