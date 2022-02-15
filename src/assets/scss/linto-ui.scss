@@ -149,6 +149,7 @@ $redDark: #fd3b3b;
             text-align: center;
             line-height: 24px;
             color: #333;
+            margin: 10px 0;
         }
         .widget-init-btn {
             display: inline-block;
@@ -504,11 +505,15 @@ $redDark: #fd3b3b;
             font-family: $spartan;
         }
         input[type="checkbox"] {
-            -webkit-appearance: checkbox;
-            padding: 0;
-            height: auto !important;
-            width: auto;
+            margin: 0;
         }
+    }
+    input[type="checkbox"] {
+        -webkit-appearance: checkbox;
+        padding: 0;
+        height: auto !important;
+        width: auto;
+        margin: 5px;
     }
     .widget-settings-btn-container {
         justify-content: space-evenly;
