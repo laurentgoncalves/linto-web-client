@@ -520,8 +520,10 @@ export default class LintoUI {
             this.hotwordEnabled = true
             this.linto.stopStreamingPipeline()
             this.linto.stopAudioAcquisition()
-            this.linto.startAudioAcquisition(true, this.hotwordValue, 0.99)
-            this.linto.startStreamingPipeline()
+            setTimeout(() => {
+                this.linto.startAudioAcquisition(true, this.hotwordValue, 0.99)
+                this.linto.startStreamingPipeline()
+            }, 200)
         }
         // Disable AudioResponse
         if (!audioRespCheckbox.checked && this.audioResponse) {
