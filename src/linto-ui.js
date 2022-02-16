@@ -510,9 +510,10 @@ export default class LintoUI {
             this.hotwordEnabled = false
             this.linto.stopStreamingPipeline()
             this.linto.stopAudioAcquisition()
-            this.linto.startAudioAcquisition(false, this.hotwordValue, 0.99)
-            this.linto.startStreamingPipeline()
-
+            setTimeout(() => {
+                this.linto.startAudioAcquisition(false, this.hotwordValue, 0.99)
+                this.linto.startStreamingPipeline()
+            }, 200)
         }
         // Enable Hotword
         else if (hotwordCheckbox.checked && !this.hotwordEnabled) {
@@ -605,7 +606,7 @@ export default class LintoUI {
                 if (!!item.file && item.file.type === 'image') {
                     jhtml += `<img src="${item.file.url}" class="widget-content-img">`
                 }
-            } else if (item.eventType === 'sentence' && this.stringIsHTML(item.text))  {
+            } else if (item.eventType === 'sentence' && this.stringIsHTML(item.text)) {
                 jhtml += item.text
             }
         }
