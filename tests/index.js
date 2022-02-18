@@ -125,7 +125,7 @@ let customHandler = function(event) {
 
 window.start = async function() {
     try {
-        window.linto = new Linto("https://alpha.linto.ai/overwatch/local/web/login", "LiC8SBbvj73HcpxV", 10000)
+        window.linto = new Linto("https://stage.linto.ai/overwatch/local/web/login", "v2lS299nR5Fv8k7Q", 10000)
             // Some feedbacks for UX implementation
         linto.addEventListener("mqtt_connect", mqttConnectHandler)
         linto.addEventListener("mqtt_connect_fail", mqttConnectFailHandler)
@@ -159,7 +159,6 @@ window.start = async function() {
         linto.startCommandPipeline()
         return true
     } catch (e) {
-        console.log(e)
         return e.message
     }
 

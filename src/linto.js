@@ -147,6 +147,32 @@ export default class Linto extends EventTarget {
         }
     }
 
+    printErrorMsg(message) {
+        let errorFrame = document.createElement('div')
+        let errorFrameStyle = `
+      display: inline-block;
+      width: 400px;
+      height: auto;
+      padding: 10px;
+      position: fixed;
+      top: 100%;
+      left: 50%;
+      margin-top: -80px;
+      margin-left: -200px;
+      background-color: #ff3d3d;
+      color: #fff;
+      text-align: center;
+      font-family: arial, helvetica, verdana;
+      font-size: 14px;
+    `
+        errorFrame.setAttribute('style', errorFrameStyle)
+        errorFrame.innerHTML = message
+        document.body.appendChild(errorFrame)
+        setTimeout(() => {
+            errorFrame.remove()
+        }, 4000)
+    }
+
     /*********
      * Actions
      *********/
@@ -162,8 +188,10 @@ export default class Linto extends EventTarget {
                     }
                 })
             } catch (authFail) {
-                if (authFail.response && authFail.response.data) return reject(authFail.response.data)
-                else return reject(authFail)
+                if (authFail.response && authFail.response.data) {
+                    this.printErrorMsg(authFail.response.data.message)
+                    return reject(authFail.response.data)
+                } else return reject(authFail)
             }
 
             try {
