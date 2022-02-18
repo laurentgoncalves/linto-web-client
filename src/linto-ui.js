@@ -252,13 +252,20 @@ export default class LintoUI {
                     txtBtn.classList.add('txt-disabled')
                     widgetFooter.classList.remove('mic-disabled')
                     widgetFooter.classList.add('mic-enabled')
-
                 }
                 if (micBtn.classList.contains('recording')) {
                     this.linto.stopStreaming()
                     this.cleanUserBubble()
                 } else {
-                    this.linto.startStreaming(0)
+                    if (this.widgetState !== 'listening') {
+                        this.linto.stopSpeech()
+                        setTimeout(() => {
+                            this.widgetState = 'listening'
+                            this.linto.startStreaming()
+                        }, 100)
+                    } else {
+                        this.linto.startStreaming()
+                    }
                 }
             }
 
@@ -713,9 +720,6 @@ export default class LintoUI {
         this.widgetState = 'saying'
         if (this.audioResponse && !isLink) {
             sayResp = await this.linto.say('fr-FR', answer)
-            this.widgetState = 'waiting'
-        } else {
-            this.widgetState = 'waiting'
         }
         if (sayResp !== null) {
             if (this.widgetMode === 'minimal-streaming') {
