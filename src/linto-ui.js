@@ -188,7 +188,8 @@ export default class LintoUI {
                 if (this.widgetMode === 'minimal-streaming' && this.widgetEnabled) {
                     this.openMinimalOverlay()
                     this.setMinimalOverlayAnimation('listening')
-                    this.linto.startStreaming(0)
+                    this.widgetState = 'listening'
+                    this.linto.startStreaming()
                 } else {
                     this.openWidget()
                 }
@@ -615,14 +616,16 @@ export default class LintoUI {
                 if (!!item.file && item.file.type === 'image') {
                     jhtml += `<img src="${item.file.url}" class="widget-content-img">`
                 }
-            } else if (item.eventType === 'sentence' && this.stringIsHTML(item.text)) {
+            } else {
                 jhtml += item.text
             }
         }
         jhtml += '</div>'
         const contentWrapper = document.getElementById('widget-main-content')
         contentWrapper.innerHTML += jhtml
-
+        this.widgetContentScrollBottom()
+    }
+    bindWidgetButtons() {
         let widgetEventsBtn = document.getElementsByClassName('widget-content-link')
         for (let btn of widgetEventsBtn) {
             btn.onclick = (e) => {
@@ -633,8 +636,6 @@ export default class LintoUI {
                 this.linto.sendChatbotText(value)
             }
         }
-        this.widgetContentScrollBottom()
-
     }
     widgetContentScrollBottom() {
         const contentWrapper = document.getElementById('widget-main-content')
