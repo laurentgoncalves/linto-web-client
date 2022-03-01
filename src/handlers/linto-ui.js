@@ -272,9 +272,8 @@ export async function widgetFeedback(e) {
     }
     if (!!e.detail && !!e.detail.behavior.chatbot) {
         let ask = e.detail.behavior.chatbot.ask
-        let answer = e.detail.behavior.chatbot.answer.data[0].text
+        let answer = !!e.detail.behavior.chatbot.answer.data[0].text ? e.detail.behavior.chatbot.answer.data[0].text : ''
         let data = e.detail.behavior.chatbot.answer.data // chatbot answers (links)
-
         if (answer.length > 0) {
             this.setWidgetBubbleContent(answer)
             if (this.widgetMode === 'minimal-streaming') {
@@ -283,11 +282,11 @@ export async function widgetFeedback(e) {
                 this.setMinimalOverlayAnimation('talking')
             }
         }
-        if (data.length > 1) {
+        if (data.length > 1 || (answer.length != 0 && data.length === 1)) {
             data.shift()
-            this.setWidgetFeedbackData(data)
         }
+        this.setWidgetFeedbackData(data)
         this.bindWidgetButtons()
-        await this.widgetSay(answer)
+        if (typeof(answer) === 'string') await this.widgetSay(answer)
     }
 }
