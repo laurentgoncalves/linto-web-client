@@ -281,11 +281,11 @@ export default class LintoUI {
                     inputContent.focus()
 
                 } else {
-                    const text = inputContent.innerHTML
+                    let text = inputContent.innerHTML.replace(/&nbsp;/g, ' ').trim()
                     if (this.stringAsSpecialChar(text)) {
                         inputError.innerHTML = 'Caractères non autorisés'
                         return
-                    } else {
+                    } else if (text.length > 0) {
                         this.createUserBubble()
                         this.setUserBubbleContent(text)
                         this.linto.sendCommandText(text)
@@ -297,9 +297,8 @@ export default class LintoUI {
             document.addEventListener('keypress', (e) => {
                 if (e.key == 13 || e.key === 'Enter') {
                     e.preventDefault()
-
                     if (inputContent === document.activeElement && inputContent.innerHTML !== '') {
-                        const text = inputContent.innerHTML
+                        let text = inputContent.innerHTML.replace(/&nbsp;/g, ' ').trim()
                         if (this.stringAsSpecialChar(text)) {
                             inputError.innerHTML = 'Caractères non autorisés'
                             return
