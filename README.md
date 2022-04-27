@@ -218,7 +218,7 @@ nano package.json
 ```
 
 ### Update “@linto-ai/webvoicesdk” devDependencie path
-```json
+```
 #package.json
 {
 	...,
