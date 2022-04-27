@@ -105,7 +105,7 @@ export default class Linto extends EventTarget {
         if (!this.hotword && this.audio) {
             this.hotword = true
             if (this.commandPipeline) this.hotwordHandler = handlers.hotwordCommandBuffer.bind(this)
-            if (streamingPipeline) this.hotwordHandler = handlers.hotwordStreaming.bind(this)
+            if (this.streamingPipeline) this.hotwordHandler = handlers.hotwordStreaming.bind(this)
             this.audio.hotword.addEventListener("hotword", this.hotwordHandler)
         }
     }
