@@ -37,10 +37,10 @@ export default class Audio extends EventTarget {
         try {
             await this.mic.start()
             await this.downSampler.start(this.mic)
-            await this.vad.start(this.mic)
             await this.speechPreemphaser.start(this.downSampler)
             await this.featuresExtractor.start(this.speechPreemphaser)
             if (this.useHotword) {
+                await this.vad.start(this.mic)
                 await this.hotword.start(this.featuresExtractor, this.vad, this.threshold)
                 await this.hotword.loadModel(this.hotword.availableModels[this.hotwordModel])
             }
@@ -52,11 +52,13 @@ export default class Audio extends EventTarget {
 
     async stop() {
         await this.downSampler.stop()
-        await this.vad.stop()
         await this.speechPreemphaser.stop()
         await this.featuresExtractor.stop()
         await this.recorder.stop()
-        if (this.useHotword) await this.hotword.stop()
+        if (this.useHotword) {
+            await this.hotword.stop()
+            await this.vad.stop()
+        }
         await this.mic.stop()
     }
 

@@ -11,15 +11,15 @@ export default class Linto extends EventTarget {
         this.browser = UaDeviceDetector.parseUserAgent(window.navigator.userAgent)
         this.commandTimeout = commandTimeout
         this.lang = "en-US" // default
-            // Status
+        // Status
         this.commandPipeline = false
         this.streamingPipeline = false
         this.streaming = false
         this.hotword = false
         this.event = {
-                nlp: false
-            }
-            // Server connexion
+            nlp: false
+        }
+        // Server connexion
         this.httpAuthServer = httpAuthServer
         this.requestToken = requestToken
     }
@@ -44,7 +44,9 @@ export default class Linto extends EventTarget {
     startAudioAcquisition(useHotword = true, hotwordModel = "linto", threshold = 0.99) {
         if (!this.audio) {
             this.audio = new Audio(this.browser.isMobile(), useHotword, hotwordModel, threshold)
-            this.audio.vad.addEventListener("speakingStatus", handlers.vadStatus.bind(this))
+            if (useHotword) {
+                this.audio.vad.addEventListener("speakingStatus", handlers.vadStatus.bind(this))
+            }
         }
     }
 
@@ -67,10 +69,10 @@ export default class Linto extends EventTarget {
         delete this.audio
     }
 
-    startStreamingPipeline() {
+    startStreamingPipeline(withHotWord = true) {
         if (!this.streamingPipeline && !this.hotword && this.audio) {
             this.streamingPipeline = true
-            this.startHotword(false)
+            if (withHotWord) this.startHotword()
             this.addEventNlp()
         }
     }
@@ -83,10 +85,10 @@ export default class Linto extends EventTarget {
         }
     }
 
-    startCommandPipeline() {
+    startCommandPipeline(withHotWord = true) {
         if (!this.commandPipeline && this.audio && !this.hotword) {
             this.commandPipeline = true
-            this.startHotword(true)
+            if (withHotWord) this.startHotword()
             this.addEventNlp()
         }
     }
@@ -99,11 +101,11 @@ export default class Linto extends EventTarget {
         }
     }
 
-    startHotword(enableCommandPipeline = true) {
+    startHotword() {
         if (!this.hotword && this.audio) {
             this.hotword = true
-            if (enableCommandPipeline) this.hotwordHandler = handlers.hotwordCommandBuffer.bind(this)
-            else this.hotwordHandler = handlers.hotwordStreaming.bind(this)
+            if (this.commandPipeline) this.hotwordHandler = handlers.hotwordCommandBuffer.bind(this)
+            if (streamingPipeline) this.hotwordHandler = handlers.hotwordStreaming.bind(this)
             this.audio.hotword.addEventListener("hotword", this.hotwordHandler)
         }
     }
@@ -119,14 +121,14 @@ export default class Linto extends EventTarget {
         if (!this.streaming && this.mqtt && this.audio) {
             this.streaming = true
             this.mqtt.startStreaming(this.audio.downSampler.options.targetSampleRate, metadata)
-                // We wait start streaming acknowledgment returning from MQTT before actualy start to publish audio frames.
+            // We wait start streaming acknowledgment returning from MQTT before actualy start to publish audio frames.
         }
     }
 
     stopStreaming() {
         if (this.streaming) {
             this.streaming = false
-                // We immediatly stop streaming audio without waiting stop streaming acknowledgment
+            // We immediatly stop streaming audio without waiting stop streaming acknowledgment
             this.audio.downSampler.removeEventListener("downSamplerFrame", this.streamingPublishHandler)
             this.mqtt.stopStreaming()
         }
@@ -177,7 +179,7 @@ export default class Linto extends EventTarget {
      * Actions
      *********/
     async login() {
-        return new Promise(async(resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             let auth
             try {
                 auth = await axios.post(this.httpAuthServer, {
@@ -198,7 +200,7 @@ export default class Linto extends EventTarget {
                 this.userInfo = auth.data.user
                 this.mqttInfo = auth.data.mqttConfig
                 this.mqtt = new MqttClient()
-                    // Mqtt
+                // Mqtt
                 this.mqtt.addEventListener("tts_lang", handlers.ttsLangAction.bind(this))
                 this.mqtt.addEventListener("streaming_start_ack", handlers.streamingStartAck.bind(this))
                 this.mqtt.addEventListener("streaming_chunk", handlers.streamingChunk.bind(this))
