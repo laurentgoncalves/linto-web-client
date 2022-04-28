@@ -41,9 +41,9 @@ export default class Linto extends EventTarget {
         }))
     }
 
-    startAudioAcquisition(useHotword = true, hotwordModel = "linto", threshold = 0.99) {
+    startAudioAcquisition(useHotword = true, hotwordModel = "linto", threshold = 0.99, mobileConstraintsOverrides = { echoCancellation: false, autoGainControl: false, noiseSuppression: false }) {
         if (!this.audio) {
-            this.audio = new Audio(this.browser.isMobile(), useHotword, hotwordModel, threshold)
+            this.audio = new Audio(this.browser.isMobile(), useHotword, hotwordModel, threshold, mobileConstraintsOverrides)
             if (useHotword) {
                 this.audio.vad.addEventListener("speakingStatus", handlers.vadStatus.bind(this))
             }
