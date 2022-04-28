@@ -2,7 +2,7 @@ import WebVoiceSDK from '@linto-ai/webvoicesdk'
 import base64Js from 'base64-js'
 
 export default class Audio extends EventTarget {
-    constructor(isMobile, useHotword = true, hotwordModel = "linto", threshold = 0.99) {
+    constructor(isMobile, useHotword = true, hotwordModel = "linto", threshold = 0.99, mobileConstraintsOverrides = { echoCancellation: false, autoGainControl: false, noiseSuppression: false }) {
         super()
         this.useHotword = useHotword
         this.hotwordModel = hotwordModel
@@ -11,11 +11,7 @@ export default class Audio extends EventTarget {
             this.mic = new webVoiceSDK.Mic({
                 sampleRate: 44100,
                 frameSize: 4096,
-                constraints: {
-                    echoCancellation: false,
-                    autoGainControl: false,
-                    noiseSuppression: false
-                }
+                constraints: mobileConstraintsOverrides
             })
         } else {
             this.mic = new webVoiceSDK.Mic() // uses webVoiceSDK.Mic.defaultOptions
