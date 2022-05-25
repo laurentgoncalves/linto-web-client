@@ -156,9 +156,7 @@ window.widget = new Widget({
 | **lintoWebHost** | string | "https://my-host.com" | Url of the host where the application is deployed |
 | **lintoWebToken** | string | "yourToken" | Authorization token to connect the application |
 | **widgetMode** | string | "multi-modal" (default) / "minimal-streamin" | Set the widget mode |
-| **hotwordEnabled** | string | "true" / "false" | Enable or disable hotword detection |
 | **hotwordValue** | string | "linto" | Value of the hotword. Change it if you use an other hotword model than "linto" |
-| **audioResponse** | string | "true" / "false" | Enable or disable linto widget audio response |
 | **streamingStopWord** | string | "stop" | Set stop-word for streaming "infinite" mode |
 | **lintoCustomEvents** | array of objects | {"flag": "event_name": func: function(){} } | Bind custom functions to events |
 | **widgetMicAnimation** | string | "/path/to/animationfile.json" | Set a custom animation file for "widget microphone animation" |
@@ -201,3 +199,32 @@ window.widget = new Widget({
 })
 ```
 
+## Work with your own wakeup-word model
+
+As mentionned before, *“linto-web-client”* bundler works with *“webVoiceSdk”*. 
+If you want to use your own wakeup-word model, you’ll have to clone both repositories and update “linto-web-client” package.json as following: 
+
+### Cloning repositories
+```bash
+#Cloning repositories
+cd /your/local/repo
+git clone git@github.com:linto-ai/WebVoiceSDK.git
+git clone git@github.com:linto-ai/linto-web-client.git
+```
+### Update package.json
+```bash
+cd /linto-web-client
+nano package.json
+```
+
+### Update “@linto-ai/webvoicesdk” devDependencie path
+```
+#package.json
+{
+	...,
+	"devDependencies": {
+		"@linto-ai/webvoicesdk": "../WebVoiceSDK",
+		...
+	}
+}
+```
