@@ -276,16 +276,18 @@ $redDark: #fd3b3b;
             .widget-link,
             .widget-content-link {
                 display: inline-block;
-                height: 30px;
-                line-height: 28px;
+                line-height: 20px;
                 font-size: 14px;
                 font-weight: 500;
                 color: $blueDark;
                 background-color: #fff;
                 border: 1px solid $blueDark;
-                padding: 0 10px;
+                padding: 10px;
                 margin: 5px 10px 5px 0;
-                @include borderRadius(15px);
+                width: 100%;
+                text-align: center;
+                box-sizing: border-box;
+                @include borderRadius(20px);
                 @include boxShadow(0,
                 2px,
                 4px,
@@ -295,7 +297,6 @@ $redDark: #fd3b3b;
                 66,
                 0.3));
                 @include transitionEase();
-                white-space: nowrap;
                 text-decoration: none;
                 &:hover {
                     background-color: $blueDark;

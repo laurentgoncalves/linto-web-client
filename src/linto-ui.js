@@ -600,8 +600,25 @@ export default class LintoUI {
         return regex.test(str)
     }
     stringAsSpecialChar(str) {
-        const regex = /[!@#$%^&*()"{}|<>]/
+        const regex = /[!@#$%^&*()"{}|<>]/g
         return regex.test(str)
+    }
+    setFeedbackData(data) {
+      this.cleanWidgetBubble()
+      let jhtml = ''
+      if(data?.button) {
+        jhtml = '<div class="content-bubble flex row widget">'
+        for (let item of data.button) {
+          jhtml += `<button class="widget-content-link">${item.text}</button>`
+        }
+        jhtml += '</div>'
+      }
+      if(data?.html) {
+        jhtml = '<div class="content-bubble flex row widget-bubble"><div class="content-item">' + data.html + '</div></div>'
+      }
+      const contentWrapper = document.getElementById('widget-main-content')
+      contentWrapper.innerHTML += jhtml
+      this.widgetContentScrollBottom()
     }
 
     // Update feedback window data content (links, img...)
@@ -624,6 +641,7 @@ export default class LintoUI {
         contentWrapper.innerHTML += jhtml
         this.widgetContentScrollBottom()
     }
+    
     bindWidgetButtons() {
         let widgetEventsBtn = document.getElementsByClassName('widget-content-link')
         for (let btn of widgetEventsBtn) {
@@ -636,6 +654,19 @@ export default class LintoUI {
             }
         }
     }
+      
+    bindCommandButtons() {
+      let widgetEventsBtn = document.getElementsByClassName('widget-content-link')
+      for (let btn of widgetEventsBtn) {
+          btn.onclick = (e) => {
+              let value = e.target.innerHTML
+              this.createUserBubble()
+              this.setUserBubbleContent(value)
+              this.createBubbleWidget()
+              this.linto.sendCommandText(value)
+          }
+      }
+  }
     widgetContentScrollBottom() {
         const contentWrapper = document.getElementById('widget-main-content')
         contentWrapper.scrollTo({
@@ -759,7 +790,7 @@ export default class LintoUI {
     initLintoWeb = async(options) => {
         // Set chatbot
         this.linto = new Linto(this.lintoWebHost, this.lintoWebToken)
-
+      
         // Chatbot events
         this.linto.addEventListener("mqtt_connect", handlers.mqttConnectHandler.bind(this))
         this.linto.addEventListener("mqtt_connect_fail", handlers.mqttConnectFailHandler.bind(this))

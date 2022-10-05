@@ -43,6 +43,8 @@ export function commandPublished(event) {
 export function hotword(event) {
     if (this.debug) {
         console.log("Hotword triggered : ", event.detail)
+        console.log('hotwordEnabled', this.hotwordEnabled)
+        console.log('widgetState', this.widgetState)
     }
     if (this.hotwordEnabled && this.widgetState === 'waiting') {
         this.widgetState = 'listening'
@@ -200,6 +202,11 @@ export function streamingStop(event) {
 export function streamingFinal(event) {
     if (this.debug) {
         console.log("Streaming ended, here's the final transcript : ", event.detail.behavior.streaming.result)
+        /*this.stopStreaming()
+        this.stopStreamingPipeline()
+        setTimeout(()=>{
+          this.startStreamingPipeline()
+        }, 100)*/
     }
 }
 export function streamingFail(event) {
@@ -261,11 +268,31 @@ export async function customHandler(e) {
     this.closeMinimalOverlay()
     this.widgetState = 'waiting'
 }
-export function askFeedback(event) {
+export async function askFeedback(e) {
     if (this.debug) {
-        console.log('Ask feedback', event)
+        console.log('Ask feedback', e)
     }
-}
+    if (!!e.detail && !!e.detail.behavior) {
+      let ask = e.detail.behavior?.ask
+      let answer = e.detail.behavior?.answer
+      if(answer?.say) {
+        this.setWidgetBubbleContent(answer.say.text)
+        await this.widgetSay(answer.say.text)
+      } 
+      if(answer?.data) {
+        
+        this.setFeedbackData(answer.data)
+        this.bindCommandButtons()
+      }
+
+      if (this.widgetMode === 'minimal-streaming') {
+        this.setMinimalOverlaySecondaryContent(ask)
+        this.setMinimalOverlayMainContent(answer?.data)
+        this.setMinimalOverlayAnimation('talking')
+      }
+      this.widgetState = 'waiting'
+    }
+  }
 export async function widgetFeedback(e) {
     if (this.debug) {
         console.log('chatbot feedback', e)
@@ -286,7 +313,7 @@ export async function widgetFeedback(e) {
             data.shift()
         }
         this.setWidgetFeedbackData(data)
-        this.bindWidgetButtons()
         if (typeof(answer) === 'string') await this.widgetSay(answer)
     }
+    this.widgetState = 'waiting'
 }
