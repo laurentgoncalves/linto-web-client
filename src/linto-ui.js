@@ -27,16 +27,16 @@ const cssFile = fs.readFileSync("./dist/linto-ui.min.css", "utf8")
 export default class LintoUI {
   constructor(data) {
     /* REQUIRED */
-    this.containerId = null
+    this.containerId = ""
     this.lintoWebHost = ""
     this.lintoWebToken = ""
 
     // GLOBAL
+    this.debug = false
     this.linto = null
     this.widgetEnabled = false
     this.widgetMode = "mutli-modal"
     this.widgetContainer = null
-    this.debug = false
     this.streamingStopWord = "stop"
 
     // STATES
@@ -49,8 +49,9 @@ export default class LintoUI {
     this.hotwordValue = "linto"
     this.hotwordEnabled = true
     this.audioResponse = true
-    this.transactionMode = "streaming"
-    // ELEMENTS
+    this.transactionMode = "chatbot"
+
+    // AUDIO
     this.beep = null
 
     // CUSTOM EVENTS
@@ -67,6 +68,35 @@ export default class LintoUI {
     this.widgetErrorAnimation = errorJson
     this.widgetValidateAnimation = validationJson
 
+    // HTML ELEMENTS
+    this.widgetStartBtn = null
+    this.widgetCloseInitFrameBtn = null
+    this.widgetCollapseBtn = null
+    this.widgetSettingsBtn = null
+    this.widgetQuitBtn = null
+    this.widgetCloseSettings = null
+    this.widgetSaveSettingsBtn = null
+    this.settingsHotword = null
+    this.settingsAudioResp = null
+    this.widgetShowMinimal = null
+    this.widgetFooter = null
+    this.inputContent = null
+    this.txtBtn = null
+    this.micBtn = null
+    this.inputError = null
+    this.closeMinimalOverlayBtn = null
+    this.contentWrapper = null
+    this.widgetShowBtn = null
+    this.widgetMultiModal = null
+    this.widgetInitFrame = null
+    this.widgetMain = null
+    this.widgetSettings = null
+    this.widgetBody = null
+
+    if (this.widgetMode === "minimal-streaming") {
+      this.widgetFooter.classList.add("hidden")
+    }
+
     // CUSTOMIZATION
     this.widgetTitle = "Linto Widget"
 
@@ -76,131 +106,97 @@ export default class LintoUI {
 
   async init(data) {
     // Set custom parameters
-    if (!!data) {
-      // Debug
-      if (!!data.debug) {
-        this.debug = data.debug
-      }
-      // Web host url
-      if (!!data.lintoWebHost) {
-        this.lintoWebHost = data.lintoWebHost
-      }
-      // Web host Token
-      if (!!data.lintoWebToken) {
-        this.lintoWebToken = data.lintoWebToken
-      }
-      // Container ID
-      if (!!data.containerId) {
-        this.containerId = data.containerId
-        this.widgetContainer = document.getElementById(this.containerId)
-      }
-      // Custom events
-      if (!!data.lintoCustomEvents) {
-        this.lintoCustomEvents = data.lintoCustomEvents
-      }
-      // Chatbot mode
-      if (!!data.widgetMode) {
-        this.widgetMode = data.widgetMode
-      }
-      // Streaming stop word
-      if (!!data.streamingStopWord) {
-        this.streamingStopWord = data.streamingStopWord
-      }
-      // Hotword enabled
-      if (!!data.hotwordValue) {
-        this.hotwordValue = data.hotwordValue
-      }
-      if (!!data.transactionMode) {
-        this.transactionMode = data.transactionMode
-      }
-      // Animations
-      if (!!data.widgetMicAnimation) {
-        this.widgetMicAnimation = require(data.widgetMicAnimation)
-      }
-      if (!!data.widgetThinkAnimation) {
-        this.widgetThinkAnimation = require(data.widgetThinkAnimation)
-      }
-      if (!!data.widgetSleepAnimation) {
-        this.widgetSleepAnimation = require(data.widgetSleepAnimation)
-      }
-      if (!!data.widgetTalkAnimation) {
-        this.widgetTalkAnimation = require(data.widgetTalkAnimation)
-      }
-      if (!!data.widgetAwakeAnimation) {
-        this.widgetAwakeAnimation = require(data.widgetAwakeAnimation)
-      }
-      if (!!data.widgetErrorAnimation) {
-        this.widgetErrorAnimation = require(data.widgetErrorAnimation)
-      }
-      if (!!data.widgetValidateAnimation) {
-        this.widgetValidateAnimation = require(data.widgetValidateAnimation)
-      }
-      // CUSTO / CSS
-      if (!!data.widgetTitle) {
-        this.widgetTitle = data.widgetTitle
-      }
-      let style = document.createElement("style")
-      let cssRewrite = cssFile
-      if (!!data.cssPrimarycolor) {
-        cssRewrite = cssRewrite.replace(/#59bbeb/g, data.cssPrimarycolor)
-      }
-      if (!!data.cssSecondaryColor) {
-        cssRewrite = cssRewrite.replace(/#055e89/g, data.cssSecondaryColor)
-      }
-      style.textContent = cssRewrite
-      document.getElementsByTagName("head")[0].appendChild(style)
+    for (let key in data) {
+      this[key] = data[key] || this[key]
     }
+    this.widgetContainer = document.getElementById(this.containerId)
+
+    // Animations
+    if (data?.widgetMicAnimation) {
+      this.widgetMicAnimation = require(data.widgetMicAnimation)
+    }
+    if (data?.widgetThinkAnimation) {
+      this.widgetThinkAnimation = require(data.widgetThinkAnimation)
+    }
+    if (data?.widgetSleepAnimation) {
+      this.widgetSleepAnimation = require(data.widgetSleepAnimation)
+    }
+    if (data?.widgetTalkAnimation) {
+      this.widgetTalkAnimation = require(data.widgetTalkAnimation)
+    }
+    if (data?.widgetAwakeAnimation) {
+      this.widgetAwakeAnimation = require(data.widgetAwakeAnimation)
+    }
+    if (data?.widgetErrorAnimation) {
+      this.widgetErrorAnimation = require(data.widgetErrorAnimation)
+    }
+    if (data?.widgetValidateAnimation) {
+      this.widgetValidateAnimation = require(data.widgetValidateAnimation)
+    }
+    // CUSTO / CSS
+    let style = document.createElement("style")
+    let cssRewrite = cssFile
+    if (data?.cssPrimarycolor) {
+      cssRewrite = cssRewrite.replace(/#59bbeb/g, data.cssPrimarycolor)
+    }
+    if (data?.cssSecondaryColor) {
+      cssRewrite = cssRewrite.replace(/#055e89/g, data.cssSecondaryColor)
+    }
+    style.textContent = cssRewrite
+    document.getElementsByTagName("head")[0].appendChild(style)
 
     // First initialisation
     if (!this.widgetEnabled) {
       // HTML (right corner)
       this.widgetContainer.innerHTML = htmlTemplate
-      if (!!data.widgetTitle) {
+      if (data?.widgetTitle) {
         setTimeout(() => {
           this.updateWidgetTitle(data)
-        }, 400)
+        }, 200)
       }
 
-      /* Widget elements */
-      const widgetStartBtn = document.getElementById("widget-init-btn-enable")
-      const widgetCloseInitFrameBtn =
-        document.getElementsByClassName("widget-close-init")
-      const widgetCollapseBtn = document.getElementById(
-        "widget-mm-collapse-btn"
+      // Set HTML elements
+      this.widgetStartBtn = document.getElementById("widget-init-btn-enable")
+      this.widgetCloseInitFrameBtn = document.getElementsByClassName(
+        "widgetCloseInitFrameBtn"
       )
-      const widgetSettingsBtn = document.getElementById(
-        "widget-mm-settings-btn"
-      )
-      const widgetQuitBtn = document.getElementById("widget-quit-btn")
-      const widgetCloseSettings = document.getElementById(
+      this.widgetCollapseBtn = document.getElementById("widget-mm-collapse-btn")
+      this.widgetSettingsBtn = document.getElementById("widget-mm-settings-btn")
+      this.widgetQuitBtn = document.getElementById("widget-quit-btn")
+      this.widgetCloseSettings = document.getElementById(
         "widget-settings-cancel"
       )
-      const widgetSaveSettings = document.getElementById("widget-settings-save")
-      const settingsHotword = document.getElementById("widget-settings-hotword")
-      const settingsAudioResp = document.getElementById(
+      this.widgetSaveSettingsBtn = document.getElementById(
+        "widget-settings-save"
+      )
+      this.settingsHotword = document.getElementById("widget-settings-hotword")
+      this.settingsAudioResp = document.getElementById(
         "widget-settings-say-response"
       )
-      const widgetShowMinimal = document.getElementById("widget-show-minimal")
-      const widgetFooter = document.getElementById("widget-main-footer")
-      const inputContent = document.getElementById("chabtot-msg-input")
-      const txtBtn = document.getElementById("widget-msg-btn")
-      const micBtn = document.getElementById("widget-mic-btn")
-      const inputError = document.getElementById("chatbot-msg-error")
-      const closeMinimalOverlayBtn = document.getElementById("widget-ms-close")
-      if (this.widgetMode === "minimal-streaming") {
-        widgetFooter.classList.add("hidden")
-      }
+      this.widgetShowMinimal = document.getElementById("widget-show-minimal")
+      this.widgetFooter = document.getElementById("widget-main-footer")
+      this.inputContent = document.getElementById("chabtot-msg-input")
+      this.txtBtn = document.getElementById("widget-msg-btn")
+      this.micBtn = document.getElementById("widget-mic-btn")
+      this.inputError = document.getElementById("chatbot-msg-error")
+      this.closeMinimalOverlayBtn = document.getElementById("widget-ms-close")
+      this.contentWrapper = document.getElementById("widget-main-content")
+      this.widgetShowBtn = document.getElementById("widget-show-btn")
+      this.widgetMultiModal = document.getElementById("widget-mm")
+      this.widgetInitFrame = document.getElementById("widget-init-wrapper")
+      this.widgetMain = document.getElementById("widget-mm-main")
+      this.widgetSettings = document.getElementById("widget-settings")
+      this.widgetBody = document.getElementById("widget-main-body")
 
       // Audio hotword sound
       this.beep = new Audio(audioFileBase64)
       this.beep.volume = 0.1
 
       // Widget Show button (right corner animation)
-      const widgetShowBtn = document.getElementById("widget-show-btn")
-      if (widgetShowBtn.classList.contains("sleeping")) {
+      if (this.widgetShowBtn.classList.contains("sleeping")) {
         this.setWidgetRightCornerAnimation("sleep")
       }
-      widgetShowBtn.onclick = () => {
+      this.widgetShowBtn.onclick = () => {
         if (this.widgetMode === "minimal-streaming" && this.widgetEnabled) {
           this.openMinimalOverlay()
           this.setMinimalOverlayAnimation("listening")
@@ -212,21 +208,20 @@ export default class LintoUI {
       }
 
       // Widget close init frame buttons
-      for (let closeBtn of widgetCloseInitFrameBtn) {
+      for (let closeBtn of this.widgetCloseInitFrameBtn) {
         closeBtn.onclick = () => {
           this.closeWidget()
         }
       }
 
       // Start widget
-      widgetStartBtn.onclick = async () => {
+      this.widgetStartBtn.onclick = async () => {
         let hotwordEnabledSettings = document.getElementById(
           "widget-init-settings-hotword"
         )
         let audioResponseEnabledSettings = document.getElementById(
           "widget-init-settings-say-response"
         )
-
         let options = {
           hotwordEnabled: hotwordEnabledSettings.checked,
           audioResponseEnabled: audioResponseEnabledSettings.checked,
@@ -235,46 +230,46 @@ export default class LintoUI {
       }
 
       // Collapse widget
-      widgetCollapseBtn.onclick = () => {
+      this.widgetCollapseBtn.onclick = () => {
         this.closeWidget()
       }
 
       // Show / Hide widget settings
-      widgetSettingsBtn.onclick = () => {
-        if (widgetSettingsBtn.classList.contains("closed")) {
+      this.widgetSettingsBtn.onclick = () => {
+        if (this.widgetSettingsBtn.classList.contains("closed")) {
           this.showSettings()
-        } else if (widgetSettingsBtn.classList.contains("opened")) {
+        } else if (this.widgetSettingsBtn.classList.contains("opened")) {
           this.hideSettings()
         }
       }
 
       // Widget CLOSE BTN
-      widgetQuitBtn.onclick = async () => {
+      this.widgetQuitBtn.onclick = async () => {
         this.closeWidget()
         this.stopWidget()
         await this.stopAll()
       }
 
       // Close Settings
-      widgetCloseSettings.onclick = () => {
+      this.widgetCloseSettings.onclick = () => {
         this.hideSettings()
       }
 
       // Save Settings
-      widgetSaveSettings.onclick = () => {
+      this.widgetSaveSettingsBtn.onclick = () => {
         this.updateWidgetSettings()
         this.hideSettings()
       }
 
       // Widget MIC BTN
-      micBtn.onclick = async () => {
-        if (widgetFooter.classList.contains("mic-disabled")) {
-          txtBtn.classList.remove("txt-enabled")
-          txtBtn.classList.add("txt-disabled")
-          widgetFooter.classList.remove("mic-disabled")
-          widgetFooter.classList.add("mic-enabled")
+      this.micBtn.onclick = async () => {
+        if (this.widgetFooter.classList.contains("mic-disabled")) {
+          this.txtBtn.classList.remove("txt-enabled")
+          this.txtBtn.classList.add("txt-disabled")
+          this.widgetFooter.classList.remove("mic-disabled")
+          this.widgetFooter.classList.add("mic-enabled")
         }
-        if (micBtn.classList.contains("recording")) {
+        if (this.micBtn.classList.contains("recording")) {
           this.linto.stopStreaming()
           this.cleanUserBubble()
         } else {
@@ -291,25 +286,25 @@ export default class LintoUI {
       }
 
       // Widget SEND BTN
-      txtBtn.onclick = () => {
+      this.txtBtn.onclick = () => {
         // Disable mic, enable text
-        if (txtBtn.classList.contains("txt-disabled")) {
-          txtBtn.classList.add("txt-enabled")
-          txtBtn.classList.remove("txt-disabled")
-          widgetFooter.classList.add("mic-disabled")
-          widgetFooter.classList.remove("mic-enabled")
-          inputContent.focus()
+        if (this.txtBtn.classList.contains("txt-disabled")) {
+          this.txtBtn.classList.add("txt-enabled")
+          this.txtBtn.classList.remove("txt-disabled")
+          this.widgetFooter.classList.add("mic-disabled")
+          this.widgetFooter.classList.remove("mic-enabled")
+          this.inputContent.focus()
         } else {
-          let text = inputContent.innerHTML.replace(/&nbsp;/g, " ").trim()
+          let text = this.inputContent.innerHTML.replace(/&nbsp;/g, " ").trim()
           if (this.stringAsSpecialChar(text)) {
-            inputError.innerHTML = "Caractères non autorisés"
+            this.inputError.innerHTML = "Caractères non autorisés"
             return
           } else if (text.length > 0) {
             this.createUserBubble()
             this.setUserBubbleContent(text)
             this.sendText(text)
-            this.createBubbleWidget()
-            inputContent.innerHTML = ""
+            this.createWidgetBubble()
+            this.inputContent.innerHTML = ""
           }
         }
       }
@@ -317,38 +312,40 @@ export default class LintoUI {
         if (e.key == 13 || e.key === "Enter") {
           e.preventDefault()
           if (
-            inputContent === document.activeElement &&
-            inputContent.innerHTML !== ""
+            this.inputContent === document.activeElement &&
+            this.inputContent.innerHTML !== ""
           ) {
-            let text = inputContent.innerHTML.replace(/&nbsp;/g, " ").trim()
+            let text = this.inputContent.innerHTML
+              .replace(/&nbsp;/g, " ")
+              .trim()
             if (this.stringAsSpecialChar(text)) {
-              inputError.innerHTML = "Caractères non autorisés"
+              this.inputError.innerHTML = "Caractères non autorisés"
               return
             } else {
               this.createUserBubble()
               this.setUserBubbleContent(text)
               this.sendText(text)
-              this.createBubbleWidget()
-              inputContent.innerHTML = ""
+              this.createWidgetBubble()
+              this.inputContent.innerHTML = ""
             }
           }
         }
       })
-      inputContent.oninput = () => {
-        if (inputError.innerHTML.length > 0) {
-          inputError.innerHTML = ""
+      this.inputContent.oninput = () => {
+        if (this.inputError.innerHTML.length > 0) {
+          this.inputError.innerHTML = ""
         }
       }
 
       // MINIMAL OVERLAY
-      closeMinimalOverlayBtn.onclick = () => {
+      this.closeMinimalOverlayBtn.onclick = () => {
         this.closeMinimalOverlay()
         this.linto.stopStreaming()
         this.linto.stopSpeech()
       }
 
       // MINIMAL SHOW WIDGET
-      widgetShowMinimal.onclick = () => {
+      this.widgetShowMinimal.onclick = () => {
         this.openWidget()
       }
 
@@ -375,11 +372,11 @@ export default class LintoUI {
         }
       }
       this.hotwordEnabled === "false"
-        ? (settingsHotword.checked = false)
-        : (settingsHotword.checked = true)
+        ? (this.settingsHotword.checked = false)
+        : (this.settingsHotword.checked = true)
       this.audioResponse === "false"
-        ? (settingsAudioResp.checked = false)
-        : (settingsAudioResp.checked = true)
+        ? (this.settingsAudioResp.checked = false)
+        : (this.settingsAudioResp.checked = true)
     }
   }
   updateWidgetTitle(data) {
@@ -437,54 +434,44 @@ export default class LintoUI {
 
   // WIDGET MAIN
   startWidget() {
-    const widgetInitFrame = document.getElementById("widget-init-wrapper")
-    const widgetMain = document.getElementById("widget-mm-main")
-    const widgetShowBtn = document.getElementById("widget-show-btn")
-    const widgetShowMinimal = document.getElementById("widget-show-minimal")
-    widgetInitFrame.classList.add("hidden")
+    this.widgetInitFrame.classList.add("hidden")
     this.closeWidget()
-    widgetMain.classList.remove("hidden")
+    this.widgetMain.classList.remove("hidden")
     this.setWidgetRightCornerAnimation("validation", () => {
-      widgetShowBtn.classList.remove("sleeping")
-      widgetShowBtn.classList.add("awake")
+      this.widgetShowBtn.classList.remove("sleeping")
+      this.widgetShowBtn.classList.add("awake")
       this.setWidgetRightCornerAnimation("awake")
     })
     if (this.widgetMode === "minimal-streaming") {
       setTimeout(() => {
-        widgetShowMinimal.classList.remove("hidden")
-        widgetShowMinimal.classList.add("visible")
+        this.widgetShowMinimal.classList.remove("hidden")
+        this.widgetShowMinimal.classList.add("visible")
       }, 2000)
     }
   }
 
   openWidget() {
-    const widgetShowBtn = document.getElementById("widget-show-btn")
-    const widgetMultiModal = document.getElementById("widget-mm")
-    const widgetShowMinimal = document.getElementById("widget-show-minimal")
     if (this.widgetMode === "minimal-streaming") {
-      widgetShowMinimal.classList.remove("visible")
-      widgetShowMinimal.classList.add("hidden")
+      this.widgetShowMinimal.classList.remove("visible")
+      this.widgetShowMinimal.classList.add("hidden")
     }
-    widgetShowBtn.classList.remove("visible")
-    widgetShowBtn.classList.add("hidden")
-    widgetMultiModal.classList.remove("hidden")
-    widgetMultiModal.classList.add("visible")
+    this.widgetShowBtn.classList.remove("visible")
+    this.widgetShowBtn.classList.add("hidden")
+    this.widgetMultiModal.classList.remove("hidden")
+    this.widgetMultiModal.classList.add("visible")
     this.widgetContentScrollBottom()
   }
   closeWidget() {
-    const widgetShowBtn = document.getElementById("widget-show-btn")
-    const widgetMultiModal = document.getElementById("widget-mm")
-    const widgetShowMinimal = document.getElementById("widget-show-minimal")
     if (this.widgetMode === "minimal-streaming") {
-      widgetShowMinimal.classList.add("visible")
-      widgetShowMinimal.classList.remove("hidden")
+      this.widgetShowMinimal.classList.add("visible")
+      this.widgetShowMinimal.classList.remove("hidden")
     }
-    widgetMultiModal.classList.add("hidden")
-    widgetMultiModal.classList.remove("visible")
-    widgetShowBtn.classList.add("visible")
-    widgetShowBtn.classList.remove("hidden")
+    this.widgetMultiModal.classList.add("hidden")
+    this.widgetMultiModal.classList.remove("visible")
+    this.widgetShowBtn.classList.add("visible")
+    this.widgetShowBtn.classList.remove("hidden")
     this.hideSettings()
-    if (widgetShowBtn.classList.contains("sleeping")) {
+    if (this.widgetShowBtn.classList.contains("sleeping")) {
       this.setWidgetRightCornerAnimation("sleep")
     } else {
       this.setWidgetRightCornerAnimation("awake")
@@ -492,32 +479,25 @@ export default class LintoUI {
   }
 
   stopWidget() {
-    const widgetInitFrame = document.getElementById("widget-init-wrapper")
-    const widgetMain = document.getElementById("widget-mm-main")
-    const widgetShowBtn = document.getElementById("widget-show-btn")
-    const widgetShowMinimal = document.getElementById("widget-show-minimal")
     if (this.widgetMode === "minimal-streaming") {
-      widgetShowMinimal.classList.remove("visible")
-      widgetShowMinimal.classList.add("hidden")
+      this.widgetShowMinimal.classList.remove("visible")
+      this.widgetShowMinimal.classList.add("hidden")
     }
-    widgetInitFrame.classList.remove("hidden")
-    widgetMain.classList.add("hidden")
-    if (widgetShowBtn.classList.contains("awake")) {
-      widgetShowBtn.classList.add("sleeping")
-      widgetShowBtn.classList.remove("awake")
+    this.widgetInitFrame.classList.remove("hidden")
+    this.widgetMain.classList.add("hidden")
+    if (this.widgetShowBtn.classList.contains("awake")) {
+      this.widgetShowBtn.classList.add("sleeping")
+      this.widgetShowBtn.classList.remove("awake")
       this.setWidgetRightCornerAnimation("sleep")
     }
   }
 
   // WIDGET SETTINGS
   showSettings() {
-    const widgetSettingsBtn = document.getElementById("widget-mm-settings-btn")
-    const widgetSettings = document.getElementById("widget-settings")
-    const widgetBody = document.getElementById("widget-main-body")
-    widgetSettingsBtn.classList.remove("closed")
-    widgetSettingsBtn.classList.add("opened")
-    widgetSettings.classList.remove("hidden")
-    widgetBody.classList.add("hidden")
+    this.widgetSettingsBtn.classList.remove("closed")
+    this.widgetSettingsBtn.classList.add("opened")
+    this.widgetSettings.classList.remove("hidden")
+    this.widgetBody.classList.add("hidden")
 
     let enableHotwordInput = document.getElementById("widget-settings-hotword")
     let enableSayRespInput = document.getElementById(
@@ -531,20 +511,16 @@ export default class LintoUI {
     }
   }
   hideSettings() {
-    const widgetSettingsBtn = document.getElementById("widget-mm-settings-btn")
-    const widgetSettings = document.getElementById("widget-settings")
-    const widgetBody = document.getElementById("widget-main-body")
-    widgetSettingsBtn.classList.remove("opened")
-    widgetSettingsBtn.classList.add("closed")
-    widgetBody.classList.remove("hidden")
-    widgetSettings.classList.add("hidden")
+    this.widgetSettingsBtn.classList.remove("opened")
+    this.widgetSettingsBtn.classList.add("closed")
+    this.widgetBody.classList.remove("hidden")
+    this.widgetSettings.classList.add("hidden")
   }
   updateWidgetSettings() {
     const hotwordCheckbox = document.getElementById("widget-settings-hotword")
     const audioRespCheckbox = document.getElementById(
       "widget-settings-say-response"
     )
-
     // Disable Hotword
     if (!hotwordCheckbox.checked && this.hotwordEnabled) {
       this.hotwordEnabled = false
@@ -591,8 +567,7 @@ export default class LintoUI {
     }
   }
   createUserBubble() {
-    const contentWrapper = document.getElementById("widget-main-content")
-    contentWrapper.innerHTML += `
+    this.contentWrapper.innerHTML += `
         <div class="content-bubble flex row user-bubble">
           <span class="loading"></span>
         </div> `
@@ -603,9 +578,8 @@ export default class LintoUI {
     current.innerHTML = `<span class="content-item">${text}</span>`
     this.widgetContentScrollBottom()
   }
-  createBubbleWidget() {
-    const contentWrapper = document.getElementById("widget-main-content")
-    contentWrapper.innerHTML += `
+  createWidgetBubble() {
+    this.contentWrapper.innerHTML += `
         <div class="content-bubble flex row widget-bubble">
           <span class="loading"></span>
         </div> `
@@ -621,7 +595,7 @@ export default class LintoUI {
       }
       this.widgetContentScrollBottom()
     } else {
-      this.createBubbleWidget()
+      this.createWidgetBubble()
       this.setWidgetBubbleContent(text)
     }
   }
@@ -657,9 +631,10 @@ export default class LintoUI {
         data.html +
         "</div></div>"
     }
-    const contentWrapper = document.getElementById("widget-main-content")
-    contentWrapper.innerHTML += jhtml
+
+    this.contentWrapper.innerHTML += jhtml
     this.widgetContentScrollBottom()
+    this.bindCommandButtons()
   }
 
   // Update feedback window data content (links, img...)
@@ -678,9 +653,9 @@ export default class LintoUI {
       }
     }
     jhtml += "</div>"
-    const contentWrapper = document.getElementById("widget-main-content")
-    contentWrapper.innerHTML += jhtml
+    this.contentWrapper.innerHTML += jhtml
     this.widgetContentScrollBottom()
+    this.bindWidgetButtons()
   }
 
   bindWidgetButtons() {
@@ -690,7 +665,7 @@ export default class LintoUI {
         let value = e.target.innerHTML
         this.createUserBubble()
         this.setUserBubbleContent(value)
-        this.createBubbleWidget()
+        this.createWidgetBubble()
         this.linto.sendChatbotText(value)
       }
     }
@@ -703,15 +678,14 @@ export default class LintoUI {
         let value = e.target.innerHTML
         this.createUserBubble()
         this.setUserBubbleContent(value)
-        this.createBubbleWidget()
+        this.createWidgetBubble()
         this.linto.sendCommandText(value)
       }
     }
   }
   widgetContentScrollBottom() {
-    const contentWrapper = document.getElementById("widget-main-content")
-    contentWrapper.scrollTo({
-      top: contentWrapper.scrollHeight,
+    this.contentWrapper.scrollTo({
+      top: this.contentWrapper.scrollHeight,
       left: 0,
       behavior: "smooth",
     })
@@ -721,17 +695,27 @@ export default class LintoUI {
   setMinimalOverlayAnimation(name, cb) {
     let jsonPath = ""
     // animation
-    if (name === "listening") {
-      jsonPath = this.widgetMicAnimation
-    } else if (name === "thinking") {
-      jsonPath = this.widgetThinkAnimation
-    } else if (name === "talking") {
-      jsonPath = this.widgetTalkAnimation
-    } else if (name === "sleep") {
-      jsonPath = this.widgetSleepAnimation
-    } else if (name === "destroy") {
-      this.widgetminimalOverlayAnimation.destroy()
+
+    switch (name) {
+      case "listening":
+        jsonPath = this.widgetMicAnimation
+        break
+      case "thinking":
+        jsonPath = this.widgetThinkAnimation
+        break
+      case "talking":
+        jsonPath = this.widgetTalkAnimation
+        break
+      case "sleep":
+        jsonPath = this.widgetSleepAnimation
+        break
+      case "destroy":
+        jsonPath = this.widgetDestroyAnimation
+        this.widgetminimalOverlayAnimation.destroy()
+      case "default":
+        break
     }
+
     if (this.widgetminimalOverlayAnimation !== null && name !== "destroy") {
       this.widgetminimalOverlayAnimation.destroy()
     }
@@ -752,26 +736,22 @@ export default class LintoUI {
     }
   }
   openMinimalOverlay() {
-    const widgetShowBtn = document.getElementById("widget-show-btn")
     const minOverlay = document.getElementById("widget-minimal-overlay")
-    const widgetShowMinimal = document.getElementById("widget-show-minimal")
     this.closeWidget()
-
-    widgetShowMinimal.classList.remove("visible")
-    widgetShowMinimal.classList.add("hidden")
-    widgetShowBtn.classList.remove("visible")
-    widgetShowBtn.classList.add("hidden")
+    this.widgetShowMinimal.classList.remove("visible")
+    this.widgetShowMinimal.classList.add("hidden")
+    this.widgetShowBtn.classList.remove("visible")
+    this.widgetShowBtn.classList.add("hidden")
     minOverlay.classList.remove("hidden")
     minOverlay.classList.add("visible")
   }
   closeMinimalOverlay() {
-    const widgetShowBtn = document.getElementById("widget-show-btn")
     const minOverlay = document.getElementById("widget-minimal-overlay")
-    const widgetShowMinimal = document.getElementById("widget-show-minimal")
-    widgetShowMinimal.classList.add("visible")
-    widgetShowMinimal.classList.remove("hidden")
-    widgetShowBtn.classList.add("visible")
-    widgetShowBtn.classList.remove("hidden")
+
+    this.widgetShowMinimal.classList.add("visible")
+    this.widgetShowMinimal.classList.remove("hidden")
+    this.widgetShowBtn.classList.add("visible")
+    this.widgetShowBtn.classList.remove("hidden")
     minOverlay.classList.add("hidden")
     minOverlay.classList.remove("visible")
     this.setMinimalOverlayAnimation("")
@@ -846,7 +826,7 @@ export default class LintoUI {
   sendText(text) {
     if (this.transactionMode === "chatbot") {
       this.linto.sendChatbotText(text)
-    } else if (this.transactionMode === "command") {
+    } else if (this.transactionMode === "nlp") {
       this.linto.sendCommandText(text)
     }
   }
@@ -944,6 +924,11 @@ export default class LintoUI {
       "chatbot_feedback",
       handlers.widgetFeedback.bind(this)
     )
+    this.linto.addEventListener("chatbot_error", (e) => {
+      // todo : handle error
+      console.log("chatbot error", e)
+      this.cleanWidgetBubble()
+    })
     this.linto.addEventListener(
       "chatbot_feedback_from_skill",
       handlers.widgetFeedback.bind(this)

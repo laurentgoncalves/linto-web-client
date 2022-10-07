@@ -1,3 +1,4 @@
+<!-- prettier-ignore-start -->
 # linto-web-client
 
 A full figured LinTO client designed for building custom voice interactions on a webpage.
@@ -228,3 +229,4 @@ nano package.json
 	}
 }
 ```
+<!-- prettier-ignore-end -->

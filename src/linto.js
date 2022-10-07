@@ -3,7 +3,7 @@ import UaDeviceDetector from "ua-device-detector"
 import MqttClient from "./mqtt.js"
 import Audio from "./audio.js"
 import * as handlers from "./handlers/linto.js"
-import * as axios from "axios"
+import axios from "axios"
 
 export default class Linto extends EventTarget {
   constructor(httpAuthServer, requestToken, commandTimeout = 10000) {
@@ -235,6 +235,7 @@ export default class Linto extends EventTarget {
         this.mqttInfo = auth.data.mqttConfig
         this.mqtt = new MqttClient()
         // Mqtt
+
         this.mqtt.addEventListener(
           "tts_lang",
           handlers.ttsLangAction.bind(this)

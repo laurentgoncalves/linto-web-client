@@ -118,7 +118,7 @@ export function streamingChunk(event) {
         this.linto.stopStreaming()
         if (this.streamingContent !== "") {
           this.setUserBubbleContent(event.detail.behavior.streaming.text)
-          this.createBubbleWidget()
+          this.createWidgetBubble()
           if (this.widgetMode === "minimal-streaming") {
             this.setMinimalOverlayMainContent(
               event.detail.behavior.streaming.text
@@ -310,7 +310,6 @@ export async function askFeedback(e) {
     }
     if (answer?.data) {
       this.setFeedbackData(answer.data)
-      this.bindCommandButtons()
     }
 
     if (this.widgetMode === "minimal-streaming") {
@@ -335,25 +334,23 @@ export async function widgetFeedback(e) {
   if (this.debug) {
     console.log("chatbot feedback", e)
   }
-  if (!!e.detail && !!e.detail.behavior.chatbot) {
-    let ask = e.detail.behavior.chatbot.ask
-    let answer = !!e.detail.behavior.chatbot.answer.data[0].text
-      ? e.detail.behavior.chatbot.answer.data[0].text
-      : ""
-    let data = e.detail.behavior.chatbot.answer.data // chatbot answers (links)
-    if (answer.length > 0) {
-      this.setWidgetBubbleContent(answer)
-      if (this.widgetMode === "minimal-streaming") {
-        this.setMinimalOverlaySecondaryContent(ask)
-        this.setMinimalOverlayMainContent(answer)
-        this.setMinimalOverlayAnimation("talking")
-      }
-    }
-    if (data.length > 1 || (answer.length != 0 && data.length === 1)) {
-      data.shift()
-    }
-    this.setWidgetFeedbackData(data)
-    if (typeof answer === "string") await this.widgetSay(answer)
+
+  let responseObj = e?.detail?.behavior?.chatbot
+    ? e.detail.behavior.chatbot
+    : e?.detail?.behavior
+
+  let say = responseObj?.say?.text
+  let question = responseObj?.question
+  let data = responseObj?.data
+
+  this.setWidgetBubbleContent(answer)
+  if (this.widgetMode === "minimal-streaming") {
+    this.setMinimalOverlaySecondaryContent(question)
+    this.setMinimalOverlayMainContent(say)
+    this.setMinimalOverlayAnimation("talking")
   }
+  this.setWidgetFeedbackData(data)
+
+  if (typeof say === "string") await this.widgetSay(say)
   this.widgetState = "waiting"
 }
