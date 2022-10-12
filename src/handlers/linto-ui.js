@@ -344,8 +344,9 @@ export async function widgetFeedback(e) {
   let data = responseObj?.data
 
   // Say response
-  if (say && !this.stringIsHTML(say) && !Array.isArray(data))
+  if (say && !this.stringIsHTML(say) && !Array.isArray(data) && say !== "") {
     this.setWidgetBubbleContent(say)
+  }
 
   if (this.widgetMode === "minimal-streaming") {
     this.setMinimalOverlaySecondaryContent(question)
@@ -356,6 +357,8 @@ export async function widgetFeedback(e) {
   // Set Data
   if (data) this.setFeedbackData(data)
 
-  if (typeof say === "string") await this.widgetSay(say)
+  if (!this.stringIsHTML(say) && say !== "") {
+    await this.widgetSay(say)
+  }
   this.widgetState = "waiting"
 }

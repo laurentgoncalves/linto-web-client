@@ -637,8 +637,8 @@ export default class LintoUI {
               jhtml += item.text
             } else {
               jhtml += `<span class="content-item">${item.text}</span>`
+              this.widgetSay(item.text)
             }
-
             break
           case "choice":
             jhtml += `<button class="widget-content-link">${item.text}</button>`
@@ -648,7 +648,6 @@ export default class LintoUI {
               jhtml += `<img src="${item.file.url}" class="widget-content-img">`
             }
           case "default":
-            jhtml += item.text
             break
         }
       }
