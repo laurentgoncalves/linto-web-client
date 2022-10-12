@@ -23,7 +23,7 @@
   "scripts": {
     "test": "parcel tests/index.html --out-dir dev-build --log-level 4 --no-cache",
     "build": "parcel build src/linto.js --log-level 4 --no-cache --no-source-maps --detailed-report --out-file linto.min.js",
-    "css-linto-ui": "sass ./src/assets/scss/linto-ui.scss ./dist/linto-ui.min.css --style compressed --no-source-map",
+    "css-linto-ui": "sass ./src/assets/scss/linto-ui.scss ./src/assets/css/linto-ui.min.css --style compressed --no-source-map",
     "build-linto-ui": "npm run css-linto-ui && parcel build src/linto-ui.js --log-level 4 --no-cache --no-source-maps --detailed-report --out-file linto.ui.min.js",
     "test-linto-ui": "npm run css-linto-ui && parcel tests/linto-ui/index.html --out-dir dev-build --log-level 4 --no-cache"
   },

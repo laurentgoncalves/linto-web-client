@@ -22,7 +22,7 @@ const htmlTemplate = fs.readFileSync(
 )
 
 // Inserting CSS to DOM
-const cssFile = fs.readFileSync("./dist/linto-ui.min.css", "utf8")
+const cssFile = fs.readFileSync("./src/assets/css/linto-ui.min.css", "utf8")
 
 export default class LintoUI {
   constructor(data) {

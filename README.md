@@ -150,6 +150,7 @@ window.widget = new Widget({
     lintoWebToken: LINTO_APPLICATION_TOKEN,
     lintoWebHost: LINTO_APPLICATION_HOST,
     widgetMode: WIDGET_MODE, 
+    transactionMode: TRANSCTION_MODE
 })
 </script>
 ```
@@ -163,6 +164,7 @@ window.widget = new Widget({
 | **lintoWebHost** | string | "https://my-host.com" | Url of the host where the application is deployed |
 | **lintoWebToken** | string | "yourToken" | Authorization token to connect the application |
 | **widgetMode** | string | "multi-modal" (default) / "minimal-streamin" | Set the widget mode |
+| **transactionMode** | string | "skills_and_chatbot" / "chatbot_only" | Use "skills_and_chatbot" to publish on "nlp" mqtt channel. Use "chatbot_only" to publish on "chatbot" mqtt channel|
 | **hotwordValue** | string | "linto" | Value of the hotword. Change it if you use an other hotword model than "linto" |
 | **streamingStopWord** | string | "stop" | Set stop-word for streaming "infinite" mode |
 | **lintoCustomEvents** | array of objects | {"flag": "event_name": func: function(){} } | Bind custom functions to events |
