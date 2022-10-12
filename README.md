@@ -1,6 +1,12 @@
 <!-- prettier-ignore-start -->
 # linto-web-client
 
+## Release note
+
+v1.1.0 : Breaking change, chatbot now uses new transaction mode. Answers are packed in a specific key
+
+## About
+
 A full figured LinTO client designed for building custom voice interactions on a webpage.
 
 See demo here : [linto.ai](https://linto.ai)
