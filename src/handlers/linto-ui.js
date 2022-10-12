@@ -343,13 +343,18 @@ export async function widgetFeedback(e) {
   let question = responseObj?.question
   let data = responseObj?.data
 
-  this.setWidgetBubbleContent(answer)
+  // Say response
+  if (say && !this.stringIsHTML(say) && !Array.isArray(data))
+    this.setWidgetBubbleContent(say)
+
   if (this.widgetMode === "minimal-streaming") {
     this.setMinimalOverlaySecondaryContent(question)
     this.setMinimalOverlayMainContent(say)
     this.setMinimalOverlayAnimation("talking")
   }
-  this.setWidgetFeedbackData(data)
+
+  // Set Data
+  if (data) this.setFeedbackData(data)
 
   if (typeof say === "string") await this.widgetSay(say)
   this.widgetState = "waiting"

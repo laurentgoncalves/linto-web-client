@@ -49,7 +49,7 @@ export default class LintoUI {
     this.hotwordValue = "linto"
     this.hotwordEnabled = true
     this.audioResponse = true
-    this.transactionMode = "chatbot"
+    this.transactionMode = "chatbot_only"
 
     // AUDIO
     this.beep = null
@@ -588,11 +588,7 @@ export default class LintoUI {
     let widgetBubbles = document.getElementsByClassName("widget-bubble")
     let current = widgetBubbles[widgetBubbles.length - 1]
     if (current) {
-      if (this.stringIsHTML(text)) {
-        current.innerHTML = text
-      } else {
-        current.innerHTML = `<span class="content-item">${text}</span>`
-      }
+      current.innerHTML = `<span class="content-item">${text}</span>`
       this.widgetContentScrollBottom()
     } else {
       this.createWidgetBubble()
@@ -618,44 +614,54 @@ export default class LintoUI {
   setFeedbackData(data) {
     this.cleanWidgetBubble()
     let jhtml = ""
-    if (data?.button) {
-      jhtml = '<div class="content-bubble flex row widget">'
-      for (let item of data.button) {
-        jhtml += `<button class="widget-content-link">${item.text}</button>`
+    if (!Array.isArray(data)) {
+      if (data?.button) {
+        jhtml = '<div class="content-bubble flex row widget-bubble">'
+        for (let item of data.button) {
+          jhtml += `<button class="widget-content-link">${item.text}</button>`
+        }
+        jhtml += "</div>"
+      }
+      if (data?.html) {
+        jhtml =
+          '<div class="content-bubble flex row widget-bubble"><div class="content-item">' +
+          data.html +
+          "</div></div>"
+      }
+    } else {
+      jhtml = '<div class="content-bubble flex row widget-bubble">'
+      for (let item of data) {
+        switch (item.eventType) {
+          case "sentence":
+            if (this.stringIsHTML(item.text)) {
+              jhtml += item.text
+            } else {
+              jhtml += `<span class="content-item">${item.text}</span>`
+            }
+
+            break
+          case "choice":
+            jhtml += `<button class="widget-content-link">${item.text}</button>`
+            break
+          case "attachment":
+            if (!!item.file && item.file.type === "image") {
+              jhtml += `<img src="${item.file.url}" class="widget-content-img">`
+            }
+          case "default":
+            jhtml += item.text
+            break
+        }
       }
       jhtml += "</div>"
     }
-    if (data?.html) {
-      jhtml =
-        '<div class="content-bubble flex row widget-bubble"><div class="content-item">' +
-        data.html +
-        "</div></div>"
-    }
 
     this.contentWrapper.innerHTML += jhtml
     this.widgetContentScrollBottom()
-    this.bindCommandButtons()
-  }
-
-  // Update feedback window data content (links, img...)
-  setWidgetFeedbackData(data) {
-    this.cleanWidgetBubble()
-    let jhtml = '<div class="content-bubble flex row widget">'
-    for (let item of data) {
-      if (item.eventType === "choice") {
-        jhtml += `<button class="widget-content-link">${item.text}</button>`
-      } else if (item.eventType === "attachment") {
-        if (!!item.file && item.file.type === "image") {
-          jhtml += `<img src="${item.file.url}" class="widget-content-img">`
-        }
-      } else {
-        jhtml += item.text
-      }
+    if (this.transactionMode === "chatbot_only") {
+      this.bindWidgetButtons()
+    } else {
+      this.bindCommandButtons()
     }
-    jhtml += "</div>"
-    this.contentWrapper.innerHTML += jhtml
-    this.widgetContentScrollBottom()
-    this.bindWidgetButtons()
   }
 
   bindWidgetButtons() {
@@ -824,9 +830,9 @@ export default class LintoUI {
     this.linto.addEventListener(label, func)
   }
   sendText(text) {
-    if (this.transactionMode === "chatbot") {
+    if (this.transactionMode === "chatbot_only") {
       this.linto.sendChatbotText(text)
-    } else if (this.transactionMode === "nlp") {
+    } else if (this.transactionMode === "skills_and_chatbot") {
       this.linto.sendCommandText(text)
     }
   }

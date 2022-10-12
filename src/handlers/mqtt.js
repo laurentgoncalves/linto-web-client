@@ -36,9 +36,7 @@ export function mqttMessage(topic, payload) {
     message.payload = JSON.parse(payload.toString())
     switch (command) {
       // Command pipeline answers for ${clientCode}/tolinto/${sessionId}/nlp/file/${fileId}
-      case "chatbot_feedback":
-        console.log("MQTT get event chatbot_feedback")
-        break
+
       case "nlp":
         this.pendingCommandIds = this.pendingCommandIds.filter(
           (element) => element !== topicArray[5]
