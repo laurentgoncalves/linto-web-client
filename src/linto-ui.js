@@ -615,19 +615,38 @@ export default class LintoUI {
     this.cleanWidgetBubble()
     let jhtml = ""
     if (!Array.isArray(data)) {
+      if (data?.html) {
+        jhtml +=
+          '<div class="content-bubble flex row widget-bubble"><div class="content-item">' +
+          data.html +
+          "</div></div>"
+      }
       if (data?.button) {
-        jhtml = '<div class="content-bubble flex row widget-bubble">'
+        jhtml += '<div class="content-bubble flex row widget-bubble">'
         for (let item of data.button) {
           jhtml += `<button class="widget-content-link">${item.text}</button>`
         }
         jhtml += "</div>"
       }
-      if (data?.html) {
-        jhtml =
-          '<div class="content-bubble flex row widget-bubble"><div class="content-item">' +
-          data.html +
-          "</div></div>"
+      if (data?.url) {
+        jhtml += '<div class="content-bubble flex row widget-bubble">'
+        for (let item of data.url) {
+          jhtml += `<a href="${item}">En savoir plus ?</a>`
+        }
+        jhtml += "</div>"
       }
+      if (data?.sentiment) {
+        jhtml += '<div class="content-bubble flex row widget-bubble">'
+        for (let item of data.sentiment) {
+          if (item.text === 'Oui_satisfaction') {
+            jhtml += `<button class="widget-content-link flex1" value="${item.text}">👍</button>`
+          } else if (item.text === 'Non_satisfaction') {
+            jhtml += `<button class="widget-content-link flex1" value="${item.text}">👎</button>`
+          }
+        }
+        jhtml += "</div>"
+      }
+
     } else {
       jhtml = '<div class="content-bubble flex row widget-bubble">'
       for (let item of data) {
@@ -666,8 +685,12 @@ export default class LintoUI {
   bindWidgetButtons() {
     let widgetEventsBtn = document.getElementsByClassName("widget-content-link")
     for (let btn of widgetEventsBtn) {
+
       btn.onclick = (e) => {
         let value = e.target.innerHTML
+        if (e?.target?.value) {
+          value = e.target.value
+        }
         this.createUserBubble()
         this.setUserBubbleContent(value)
         this.createWidgetBubble()
