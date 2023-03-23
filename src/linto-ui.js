@@ -46,7 +46,7 @@ export default class LintoUI {
     this.widgetState = "sleeping"
 
     // SETTINGS
-    this.hotwordValue = "linto"
+    this.hotwordValue = "multibot"
     this.hotwordEnabled = true
     this.audioResponse = true
     this.transactionMode = "chatbot_only"
