@@ -631,7 +631,7 @@ export default class LintoUI {
       if (data?.url) {
         jhtml += '<div class="content-bubble flex row widget-bubble">'
         for (let item of data.url) {
-          jhtml += `<a href="${item}" target="_blank">En savoir plus ?</a>`
+          jhtml += `<a href="${item}">Démarrer une demande</a>`
         }
         jhtml += "</div>"
       }
