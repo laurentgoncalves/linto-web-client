@@ -630,8 +630,15 @@ export default class LintoUI {
       }
       if (data?.url) {
         jhtml += '<div class="content-bubble flex row widget-bubble">'
+        let suffix ="";
+        if (typeof(workflow) !== "undefined") {
+          suffix += "&workflow="+workflow;
+        }
+        if (typeof(egoToken) !== "undefined") {
+          suffix += "&egoToken="+egoToken;
+        }
         for (let item of data.url) {
-          jhtml += `<a href="${item}">Démarrer une demande</a>`
+          jhtml += `<a href="${item}${suffix}">Démarrer une demande</a>`
         }
         jhtml += "</div>"
       }
